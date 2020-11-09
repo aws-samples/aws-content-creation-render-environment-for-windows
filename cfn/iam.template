@@ -1,10 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: 'Provides the IAM policies and access configuration for the AWS Digital Content Creation Architecture.'
 
-Parameters:
-  ResourceTags:
-    Type: String
-
 Resources:
   #-- The managed policy for Amazon EC2 Role to enable AWS Systems Manager service core functionality. --#
   EC2SessionManagerRole:
@@ -21,9 +17,6 @@ Resources:
       Path: /
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
-      Tags:
-        - Key: Name
-          Value: !Ref ResourceTags
 
   EC2InstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -47,9 +40,6 @@ Resources:
       Path: /
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
-      Tags:
-        - Key: Name
-          Value: !Ref ResourceTags
 
   #-- Amazon EC2 instance periodically connects to an Amazon S3 bucket to determine whether a valid license is available. --#
   NiceDCVLicensePolicy:
@@ -87,9 +77,6 @@ Resources:
               - sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonEC2SpotFleetTaggingRole
-      Tags:
-        - Key: Name
-          Value: !Ref ResourceTags
 
 Outputs:
   EC2InstanceProfile:
