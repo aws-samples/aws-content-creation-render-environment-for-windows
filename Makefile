@@ -38,7 +38,7 @@ deploy:
 	  --region $(AWS_REGION) \
 	  --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
 	  --parameter-overrides \
-	  	KendraIndexName=$(KENDRA_INDEX_NAME)
+	  	AvailabilityZones=$(AWS_REGION)a,$(AWS_REGION)b
 
 # virtualenv setup
 venv: venv/bin/activate
