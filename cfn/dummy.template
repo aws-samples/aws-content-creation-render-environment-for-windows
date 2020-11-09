@@ -1,0 +1,13 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Description of the template
+
+Parameters:
+  ResourceTags:
+    Type: String
+
+Resources:
+  DummyResource:
+    Type: Custom::Resource
+    Properties:
+      ServiceToken: xxxxx
+      ResourceTags: !Ref ResourceTags

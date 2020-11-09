@@ -1,0 +1,20 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Description of the project (uksb-xxxxxxxxx)
+
+Metadata:
+  Version: 0.0.1
+
+Parameters:
+  ResourceTags:
+    Type: String
+    Description: Tag resources, which can help you identify and categorize them. For example project or application name e.g. MyAwesomeApp.
+    Default: MyApp
+
+Resources:
+  DummyResource:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: lex.template
+      TimeoutInMinutes: 10
+      Parameters:
+        ResourceTags: !Ref ResourceTags
