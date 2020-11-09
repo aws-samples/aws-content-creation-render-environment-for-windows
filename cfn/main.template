@@ -1,20 +1,114 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Description of the project (uksb-xxxxxxxxx)
+Description: Description of the project (uksb-1rab36c41)
 
 Metadata:
   Version: 0.0.1
+#  AWS::CloudFormation::Interface:
+#    ParameterGroups:
+#      - Label:
+#          default: Region configuration
+#        Parameters:
+#          - AvailabilityZones
+#      - Label:
+#          default: VPC network configuration
+#        Parameters:
+#          - VPCName
+#          - VPCCidr
+#          - VPCPublicSubnet1Cidr
+#          - VPCPublicSubnet2Cidr
+#          - VPCPrivateSubnet1Cidr
+#          - VPCPrivateSubnet2Cidr
+#    ParameterLabels:
+#      AvailabilityZones:
+#        default: Availability Zones
+#      VPCName:
+#        default: VPC name
+#      VPCCidr:
+#        default: VPC CIDR
+#      VPCPublicSubnet1Cidr:
+#        default: Public Subnet 1 CIDR
+#      VPCPublicSubnet2Cidr:
+#        default: Public Subnet 2 CIDR
+#      VPCPrivateSubnet1Cidr:
+#        default: Private Subnet 1 CIDR
+#      VPCPrivateSubnet2Cidr:
+#        default: Private Subnet 2 CIDR
+#      CreateVPNEndpoint:
+#        default: Create VPN Endpoint.
+#      ClientCidrBlock:
+#        default: Client CIDR for VPN Endpoint
 
 Parameters:
+#  AvailabilityZones:
+#    Type: List<AWS::EC2::AvailabilityZone::Name>
+#    Description: 'The list of Availability Zones to use for the subnets in the VPC. Select **two** Availability Zones from your list.'
+#
+#  VPCName:
+#    Type: String
+#    Description: 'The name of the VPC.'
+#    Default: 'dcc-vpc'
+#
+#  VPCCidr:
+#    Type: String
+#    Description: 'The CIDR block for the VPC.'
+#    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+#    ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/16-28'
+#    Default: '10.0.0.0/16'
+#
+#  VPCPublicSubnet1Cidr:
+#    Type: String
+#    Description: 'The CIDR block for the Public Subnet located in Availability Zone 1 of the VPC.'
+#    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+#    ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/16-28'
+#    Default: '10.0.0.0/24'
+#
+#  VPCPublicSubnet2Cidr:
+#    Type: String
+#    Description: 'The CIDR block for the Public Subnet located in Availability Zone 2 of the VPC.'
+#    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+#    ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/16-28'
+#    Default: '10.0.1.0/24'
+#
+#  VPCPrivateSubnet1Cidr:
+#    Type: String
+#    Description: 'The CIDR block for the Private Subnet located in Availability Zone 1 of the VPC.'
+#    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+#    ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/16-28'
+#    Default: '10.0.2.0/24'
+#
+#  VPCPrivateSubnet2Cidr:
+#    Type: String
+#    Description: 'The CIDR block for the Private Subnet located in Availability Zone 2 of the VPC.'
+#    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+#    ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/16-28'
+#    Default: '10.0.3.0/24'
+#
+#  Environment:
+#    Type: String
+#    Description: 'The type of environment to tag your infrastructure with. You can specify DEV (development), TEST (test), or PROD (production).'
+#    AllowedValues:
+#      - DEV
+#      - TEST
+#      - PROD
+#    Default: 'DEV'
+
   ResourceTags:
     Type: String
     Description: Tag resources, which can help you identify and categorize them. For example project or application name e.g. MyAwesomeApp.
-    Default: MyApp
+    Default: 'win-dcc'
+
+#  ArtefactBucketName:
+#    Type: String
+#    Description: 'S3 bucket name for the application assets.'
+#    AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-.]*[0-9a-zA-Z])*$
+#    ConstraintDescription: 'S3 bucket name can include numbers, lowercase letters, uppercase letters, periods (.), and hyphens (-). It cannot start or end with a hyphen (-).'
+#    Default: 'aws-digital-content-creation-render-environment'
 
 Resources:
-  DummyResource:
+  IAMStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: lex.template
+      TemplateURL: iam.template
       TimeoutInMinutes: 10
       Parameters:
         ResourceTags: !Ref ResourceTags

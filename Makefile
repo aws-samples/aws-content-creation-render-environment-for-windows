@@ -22,7 +22,7 @@ help:
 init: venv
 	venv/bin/pre-commit install
 
-deploy: build
+deploy:
 	@printf "\n--> Packaging and uploading templates to the %s S3 bucket ...\n" $(BUCKET_NAME)
 	@aws cloudformation package \
 	  --template-file ./cfn/main.template \
@@ -39,12 +39,6 @@ deploy: build
 	  --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
 	  --parameter-overrides \
 	  	KendraIndexName=$(KENDRA_INDEX_NAME)
-
-build:
-	@for fn in src/*; do \
-  		printf "\n--> Installing %s requirements...\n" $${fn}; \
-  		pip install -r $${fn}/requirements.txt --target $${fn} --upgrade --use-feature=2020-resolver; \
-  	done
 
 # virtualenv setup
 venv: venv/bin/activate
