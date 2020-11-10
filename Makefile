@@ -38,7 +38,10 @@ deploy:
 	  --region $(AWS_REGION) \
 	  --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
 	  --parameter-overrides \
-	  	AvailabilityZones=$(AWS_REGION)a,$(AWS_REGION)b
+	  	AvailabilityZones=$(AWS_REGION)a,$(AWS_REGION)b \
+	  	DomainAdminPassword=$(DOMAIN_ADMIN_PASSWORD) \
+		WorkstationAccessCIDR=$(WORKSTATION_ACCESS_CIDR) \
+		WorkstationConnectionManager=$(WORKSTATION_CONNECTION_MANAGER)
 
 # virtualenv setup
 venv: venv/bin/activate

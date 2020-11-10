@@ -13,27 +13,38 @@ Metadata:
           default: VPC network configuration
         Parameters:
           - VPCCidr
-          - VPCPublicSubnet1Cidr
-          - VPCPublicSubnet2Cidr
-          - VPCPrivateSubnet1Cidr
-          - VPCPrivateSubnet2Cidr
+          - PublicSubnet1Cidr
+          - PublicSubnet2Cidr
+          - PrivateSubnet1Cidr
+          - PrivateSubnet2Cidr
+      - Label:
+          default: Microsoft AD configuration
+        Parameters:
+          - Edition
+          - DomainDNSName
+          - DomainNetBIOSName
+          - DomainAdminPassword
     ParameterLabels:
       AvailabilityZones:
         default: Availability Zones
       VPCCidr:
         default: VPC CIDR
-      VPCPublicSubnet1Cidr:
+      PublicSubnet1Cidr:
         default: Public Subnet 1 CIDR
-      VPCPublicSubnet2Cidr:
+      PublicSubnet2Cidr:
         default: Public Subnet 2 CIDR
-      VPCPrivateSubnet1Cidr:
+      PrivateSubnet1Cidr:
         default: Private Subnet 1 CIDR
-      VPCPrivateSubnet2Cidr:
+      PrivateSubnet2Cidr:
         default: Private Subnet 2 CIDR
-#      CreateVPNEndpoint:
-#        default: Create VPN Endpoint.
-#      ClientCidrBlock:
-#        default: Client CIDR for VPN Endpoint
+      Edition:
+        default: Microsoft AD Edition
+      DomainDNSName:
+        default: Domain DNS Name
+      DomainNetBIOSName:
+        default: Domain NetBIOS Name
+      DomainAdminPassword:
+        default: Domain Admin Password
 
 Parameters:
   AvailabilityZones:
@@ -47,33 +58,80 @@ Parameters:
     ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/16-28'
     Default: '10.0.0.0/16'
 
-  VPCPublicSubnet1Cidr:
+  PublicSubnet1Cidr:
     Type: String
     Description: 'The CIDR block for the Public Subnet located in Availability Zone 1 of the VPC.'
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/16-28'
     Default: '10.0.0.0/24'
 
-  VPCPublicSubnet2Cidr:
+  PublicSubnet2Cidr:
     Type: String
     Description: 'The CIDR block for the Public Subnet located in Availability Zone 2 of the VPC.'
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/16-28'
     Default: '10.0.1.0/24'
 
-  VPCPrivateSubnet1Cidr:
+  PrivateSubnet1Cidr:
     Type: String
     Description: 'The CIDR block for the Private Subnet located in Availability Zone 1 of the VPC.'
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/16-28'
     Default: '10.0.2.0/24'
 
-  VPCPrivateSubnet2Cidr:
+  PrivateSubnet2Cidr:
     Type: String
     Description: 'The CIDR block for the Private Subnet located in Availability Zone 2 of the VPC.'
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/16-28'
     Default: '10.0.3.0/24'
+
+  Edition:
+    Type: String
+    Description: The AWS Microsoft AD edition. Valid values include Standard and Enterprise.
+    AllowedValues:
+      - Standard
+      - Enterprise
+    Default: 'Standard'
+
+  DomainDNSName:
+    Type: String
+    Description: Fully qualified domain name (FQDN) of the forest root domain e.g. mystudio.com
+    MinLength: 2
+    MaxLength: 25
+    AllowedPattern: '[a-zA-Z0-9\-]+\..+'
+    Default: 'mystudio.com'
+
+  DomainNetBIOSName:
+    Type: String
+    Description: NetBIOS name of the domain (upto 15 characters) for users of earlier versions of Windows e.g. mystudio
+    MinLength: 1
+    MaxLength: 15
+    AllowedPattern: '[a-zA-Z0-9\-]+'
+    Default: 'mystudio'
+
+  DomainAdminPassword:
+    Type: String
+    Description: Password for the default administrative user named Admin. Must be between 8 and 64 characters, not contain the word "admin", and include letters, numbers and symbols.
+    MinLength: 8
+    MaxLength: 64
+    AllowedPattern: (?=^.{6,255}$)((?=.*\d)(?=.*[A-Z])(?=.*[a-z])|(?=.*\d)(?=.*[^A-Za-z0-9])(?=.*[a-z])|(?=.*[^A-Za-z0-9])(?=.*[A-Z])(?=.*[a-z])|(?=.*\d)(?=.*[A-Z])(?=.*[^A-Za-z0-9]))^.*
+    NoEcho: true
+
+  WorkstationConnectionManager:
+    Type: String
+    Description: 'Specify whether you want to run Teradici PCoIP or NiceDcv server to connect to the workstation.'
+    AllowedValues:
+      - teradici
+      - nicedcv
+    Default: 'teradici'
+
+  WorkstationAccessCIDR:
+    Type: String
+    Description: "CIDR block of an on-premise IP address. Input your network's current public or private IP depending if the Workstation is being placed in a public or private subnet."
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/0-32'
+    Default: '0.0.0.0/0'
 
   Environment:
     Type: String
@@ -87,14 +145,7 @@ Parameters:
   ResourceTags:
     Type: String
     Description: Tag resources, which can help you identify and categorize them. For example project or application name e.g. MyAwesomeApp.
-    Default: 'win-dcc'
-
-#  ArtefactBucketName:
-#    Type: String
-#    Description: 'S3 bucket name for the application assets.'
-#    AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-.]*[0-9a-zA-Z])*$
-#    ConstraintDescription: 'S3 bucket name can include numbers, lowercase letters, uppercase letters, periods (.), and hyphens (-). It cannot start or end with a hyphen (-).'
-#    Default: 'aws-digital-content-creation-render-environment'
+    Default: 'mystudio'
 
 Resources:
   IAMStack:
@@ -102,8 +153,10 @@ Resources:
     Properties:
       TemplateURL: iam.template
       TimeoutInMinutes: 10
+      Parameters:
+        WorkstationConnectionManager: !Ref WorkstationConnectionManager
       Tags:
-        - Key: ResourceTag
+        - Key: Studio
           Value: !Ref ResourceTags
         - Key: Environment
           Value: !Ref Environment
@@ -119,13 +172,51 @@ Resources:
             - ','
             - !Ref AvailabilityZones
         VPCCidr: !Ref VPCCidr
-        VPCPublicSubnet1Cidr: !Ref VPCPublicSubnet1Cidr
-        VPCPublicSubnet2Cidr: !Ref VPCPublicSubnet2Cidr
-        VPCPrivateSubnet1Cidr: !Ref VPCPrivateSubnet1Cidr
-        VPCPrivateSubnet2Cidr: !Ref VPCPrivateSubnet2Cidr
+        PublicSubnet1Cidr: !Ref PublicSubnet1Cidr
+        PublicSubnet2Cidr: !Ref PublicSubnet2Cidr
+        PrivateSubnet1Cidr: !Ref PrivateSubnet1Cidr
+        PrivateSubnet2Cidr: !Ref PrivateSubnet2Cidr
         ResourceTags: !Ref ResourceTags
       Tags:
-        - Key: ResourceTag
+        - Key: Studio
+          Value: !Ref ResourceTags
+        - Key: Environment
+          Value: !Ref Environment
+
+  SecurityGroupsHelperStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: security-groups-helper.template
+      TimeoutInMinutes: 10
+      Parameters:
+        VpcID: !GetAtt VPCStack.Outputs.VpcID
+        PublicSubnet1Cidr: !Ref PublicSubnet1Cidr
+        PublicSubnet2Cidr: !Ref PublicSubnet2Cidr
+        PrivateSubnet1Cidr: !Ref PrivateSubnet1Cidr
+        PrivateSubnet2Cidr: !Ref PrivateSubnet2Cidr
+        WorkstationAccessCIDR: !Ref WorkstationAccessCIDR
+        WorkstationConnectionManager: !Ref WorkstationConnectionManager
+      Tags:
+        - Key: Studio
+          Value: !Ref ResourceTags
+        - Key: Environment
+          Value: !Ref Environment
+
+  MicrosoftADStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ad.template
+      TimeoutInMinutes: 50
+      Parameters:
+        Edition: !Ref Edition
+        DomainDNSName: !Ref DomainDNSName
+        DomainNetBIOSName: !Ref DomainNetBIOSName
+        DomainAdminPassword: !Ref DomainAdminPassword
+        VpcID: !GetAtt VPCStack.Outputs.VpcID
+        PrivateSubnet1: !GetAtt VPCStack.Outputs.PrivateSubnet1
+        PrivateSubnet2: !GetAtt VPCStack.Outputs.PrivateSubnet2
+      Tags:
+        - Key: Studio
           Value: !Ref ResourceTags
         - Key: Environment
           Value: !Ref Environment
