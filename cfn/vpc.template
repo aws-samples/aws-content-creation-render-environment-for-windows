@@ -96,7 +96,7 @@ Resources:
       SubnetId: !Ref PublicSubnet1Subnet
       Tags:
         - Key: Name
-          Value: !Join [ '/', [ !Ref ResourceTags, PublicSubnet1NATGateway ] ]
+          Value: !Join [ '/', [ !Ref ResourceTags, PublicSubnet1NatGateway ] ]
 
   PublicSubnet2Subnet:
     Type: AWS::EC2::Subnet

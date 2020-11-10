@@ -215,6 +215,7 @@ Resources:
         VpcID: !GetAtt VPCStack.Outputs.VpcID
         PrivateSubnet1: !GetAtt VPCStack.Outputs.PrivateSubnet1
         PrivateSubnet2: !GetAtt VPCStack.Outputs.PrivateSubnet2
+        ResourceTags: !Ref ResourceTags
       Tags:
         - Key: Studio
           Value: !Ref ResourceTags

@@ -24,6 +24,9 @@ Parameters:
   PrivateSubnet2:
     Type: AWS::EC2::Subnet::Id
 
+  ResourceTags:
+    Type: String
+
 Resources:
   MicrosoftAD:
     Type: AWS::DirectoryService::MicrosoftAD
@@ -44,6 +47,8 @@ Resources:
       DomainName: !Ref DomainDNSName
       DomainNameServers: !GetAtt MicrosoftAD.DnsIpAddresses
       Tags:
+        - Key: Name
+          Value: !Join [ '/', [ !Ref ResourceTags, DHCPOptions ] ]
         - Key: Domain
           Value: !Ref DomainDNSName
 
