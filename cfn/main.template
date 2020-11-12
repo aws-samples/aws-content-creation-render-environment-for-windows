@@ -188,7 +188,7 @@ Parameters:
       - MULTI_AZ_1
       - SINGLE_AZ_2
       - SINGLE_AZ_1
-    Default: 'SINGLE_AZ_2'
+    Default: 'MULTI_AZ_1'
 
   FSxStorageCapacity:
     Type: Number
