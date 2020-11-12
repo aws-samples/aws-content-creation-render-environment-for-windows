@@ -18,6 +18,14 @@ Metadata:
           - PrivateSubnet1Cidr
           - PrivateSubnet2Cidr
       - Label:
+          default: Client VPN Configuration
+        Parameters:
+          - CreateVPNEndpoint
+          - ClientCidrBlock
+          - ServerCertificateArn
+          - ClientCertificateArn
+          - TargetNetworkCidr
+      - Label:
           default: Microsoft AD configuration
         Parameters:
           - Edition
@@ -37,6 +45,16 @@ Metadata:
         default: Private Subnet 1 CIDR
       PrivateSubnet2Cidr:
         default: Private Subnet 2 CIDR
+      CreateVPNEndpoint:
+        default: Create VPN Endpoint.
+      ClientCidrBlock:
+        default: Client CIDR for VPN Endpoint
+      ServerCertificateArn:
+        default: ACM Server Certificate ARN
+      ClientCertificateArn:
+        default: ACM Client Certificate ARN
+      TargetNetworkCidr:
+        default: Target Network CIDR for VPN Endpoint
       Edition:
         default: Microsoft AD Edition
       DomainDNSName:
@@ -85,6 +103,39 @@ Parameters:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/16-28'
     Default: '10.0.3.0/24'
+
+  CreateVPNEndpoint:
+    Type: String
+    Description: "Should the CloudFormation create a Client VPN Endpoint. Workstation will be placed in Private subnet, if set to 'true'. (Specify 'true' or 'false')"
+    ConstraintDescription: Must specify 'true' or 'false'
+    AllowedValues:
+      - false
+      - true
+    Default: false
+
+  ClientCidrBlock:
+    Type: String
+    Description: 'If creating Client VPN endpoint in the solution, specify the IPv4 address range. It should be in CIDR notation from which to assign client IP addresses. The address range cannot overlap with the local CIDR of the VPC in which the associated subnet.'
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-9]|3[0-2]))$
+    ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/16-32'
+    Default: 10.50.0.0/20
+
+  ServerCertificateArn:
+    Type: String
+    Description: 'Required if Create Client VPN endpoint is set to `true`.'
+    Default: N/A
+
+  ClientCertificateArn:
+    Type: String
+    Description: 'Required if Create Client VPN endpoint is set to `true`.'
+    Default: N/A
+
+  TargetNetworkCidr:
+    Type: String
+    Description: 'If creating Client VPN endpoint in the solution, specify the IPv4 address range, in CIDR notation, of the network for which access is being authorized.'
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(0[0-9]|1[0-9]|2[0-9]|3[0-2]))$
+    ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/0-32'
+    Default: 10.0.0.0/16
 
   Edition:
     Type: String
@@ -147,6 +198,10 @@ Parameters:
     Description: Tag resources, which can help you identify and categorize them. For example project or application name e.g. MyAwesomeApp.
     Default: 'mystudio'
 
+Conditions:
+  CreateClientVPN:
+    !Equals [!Ref CreateVPNEndpoint, true]
+
 Resources:
   IAMStack:
     Type: AWS::CloudFormation::Stack
@@ -201,6 +256,19 @@ Resources:
           Value: !Ref ResourceTags
         - Key: Environment
           Value: !Ref Environment
+
+  ClientVPNStack:
+    Type: AWS::CloudFormation::Stack
+    Condition: CreateClientVPN
+    Properties:
+      TemplateURL: client-vpn.template
+      Parameters:
+        ClientCidrBlock: !Ref ClientCidrBlock
+        ServerCertificateArn: !Ref ServerCertificateArn
+        ClientCertificateArn: !Ref ClientCertificateArn
+        SubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1
+        TargetNetworkCidr: !Ref TargetNetworkCidr
+        VPC: !GetAtt VPCStack.Outputs.VpcID
 
   MicrosoftADStack:
     Type: AWS::CloudFormation::Stack

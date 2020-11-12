@@ -39,6 +39,9 @@ deploy:
 	  --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
 	  --parameter-overrides \
 	  	AvailabilityZones=$(AWS_REGION)a,$(AWS_REGION)b \
+	  	CreateVPNEndpoint=$(CREATE_VPN_ENDPOINT) \
+		ServerCertificateArn=$(SERVER_CERT_ARN) \
+		ClientCertificateArn=$(CLIENT_CERT_ARN) \
 	  	DomainAdminPassword=$(DOMAIN_ADMIN_PASSWORD) \
 		WorkstationAccessCIDR=$(WORKSTATION_ACCESS_CIDR) \
 		WorkstationConnectionManager=$(WORKSTATION_CONNECTION_MANAGER)
