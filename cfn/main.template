@@ -118,28 +118,28 @@ Parameters:
     Description: 'If creating Client VPN endpoint in the solution, specify the IPv4 address range. It should be in CIDR notation from which to assign client IP addresses. The address range cannot overlap with the local CIDR of the VPC in which the associated subnet.'
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-9]|3[0-2]))$
     ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/16-32'
-    Default: 10.50.0.0/20
+    Default: '10.50.0.0/20'
 
   ServerCertificateArn:
     Type: String
     Description: 'Required if Create Client VPN endpoint is set to `true`.'
-    Default: N/A
+    Default: 'N/A'
 
   ClientCertificateArn:
     Type: String
     Description: 'Required if Create Client VPN endpoint is set to `true`.'
-    Default: N/A
+    Default: 'N/A'
 
   TargetNetworkCidr:
     Type: String
     Description: 'If creating Client VPN endpoint in the solution, specify the IPv4 address range, in CIDR notation, of the network for which access is being authorized.'
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(0[0-9]|1[0-9]|2[0-9]|3[0-2]))$
     ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/0-32'
-    Default: 10.0.0.0/16
+    Default: '10.0.0.0/16'
 
   Edition:
     Type: String
-    Description: The AWS Microsoft AD edition. Valid values include Standard and Enterprise.
+    Description: 'The AWS Microsoft AD edition. Valid values include Standard and Enterprise.'
     AllowedValues:
       - Standard
       - Enterprise
@@ -147,7 +147,7 @@ Parameters:
 
   DomainDNSName:
     Type: String
-    Description: Fully qualified domain name (FQDN) of the forest root domain e.g. mystudio.com
+    Description: 'Fully qualified domain name (FQDN) of the forest root domain e.g. mystudio.com'
     MinLength: 2
     MaxLength: 25
     AllowedPattern: '[a-zA-Z0-9\-]+\..+'
@@ -155,7 +155,7 @@ Parameters:
 
   DomainNetBIOSName:
     Type: String
-    Description: NetBIOS name of the domain (upto 15 characters) for users of earlier versions of Windows e.g. mystudio
+    Description: 'NetBIOS name of the domain (upto 15 characters) for users of earlier versions of Windows e.g. mystudio'
     MinLength: 1
     MaxLength: 15
     AllowedPattern: '[a-zA-Z0-9\-]+'
@@ -163,11 +163,42 @@ Parameters:
 
   DomainAdminPassword:
     Type: String
-    Description: Password for the default administrative user named Admin. Must be between 8 and 64 characters, not contain the word "admin", and include letters, numbers and symbols.
+    Description: 'Password for the default administrative user named Admin. Must be between 8 and 64 characters, not contain the word "admin", and include letters, numbers and symbols.'
     MinLength: 8
     MaxLength: 64
     AllowedPattern: (?=^.{6,255}$)((?=.*\d)(?=.*[A-Z])(?=.*[a-z])|(?=.*\d)(?=.*[^A-Za-z0-9])(?=.*[a-z])|(?=.*[^A-Za-z0-9])(?=.*[A-Z])(?=.*[a-z])|(?=.*\d)(?=.*[A-Z])(?=.*[^A-Za-z0-9]))^.*
     NoEcho: true
+
+  FSxDeploymentType:
+    Type: String
+    Description: 'Specifies the file system deployment type'
+    AllowedValues:
+      - MULTI_AZ_1
+      - SINGLE_AZ_2
+      - SINGLE_AZ_1
+    Default: 'SINGLE_AZ_2'
+
+  FSxStorageCapacity:
+    Type: Number
+    Description: 'The storage capacity of the file system being created. Valid values are 32 GiB - 65,536 GiB (64 TiB).'
+    MinValue: 32
+    MaxValue: 65536
+    Default: 32
+
+  FSxThroughputCapacity:
+    Type: Number
+    Description: 'The throughput capacity of an Amazon FSx file system, measured in megabytes per second in powers of 2 (8, 16, 32, ... , 1024) based on the system size.'
+    AllowedValues:
+      - 8
+      - 16
+      - 32
+      - 64
+      - 128
+      - 256
+      - 512
+      - 1024
+      - 2048
+    Default: 16
 
   WorkstationConnectionManager:
     Type: String
@@ -207,7 +238,6 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: iam.template
-      TimeoutInMinutes: 10
       Parameters:
         WorkstationConnectionManager: !Ref WorkstationConnectionManager
       Tags:
@@ -220,7 +250,6 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: vpc.template
-      TimeoutInMinutes: 20
       Parameters:
         AvailabilityZones:
           Fn::Join:
@@ -242,7 +271,6 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: security-groups-helper.template
-      TimeoutInMinutes: 10
       Parameters:
         VpcID: !GetAtt VPCStack.Outputs.VpcID
         PublicSubnet1Cidr: !Ref PublicSubnet1Cidr
@@ -274,7 +302,6 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: ad.template
-      TimeoutInMinutes: 50
       Parameters:
         Edition: !Ref Edition
         DomainDNSName: !Ref DomainDNSName
@@ -283,6 +310,34 @@ Resources:
         VpcID: !GetAtt VPCStack.Outputs.VpcID
         PrivateSubnet1: !GetAtt VPCStack.Outputs.PrivateSubnet1
         PrivateSubnet2: !GetAtt VPCStack.Outputs.PrivateSubnet2
+        ResourceTags: !Ref ResourceTags
+      Tags:
+        - Key: Studio
+          Value: !Ref ResourceTags
+        - Key: Environment
+          Value: !Ref Environment
+
+  FSxWindowsStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: fsx.template
+      Parameters:
+        DeploymentType: !Ref FSxDeploymentType
+        StorageCapacity: !Ref FSxStorageCapacity
+        FSxThroughputCapacity: !Ref FSxThroughputCapacity
+        VpcId: !GetAtt VPCStack.Outputs.VpcID
+        VPCCidr: !Ref VPCCidr
+        PrivateSubnet1: !GetAtt VPCStack.Outputs.PrivateSubnet1
+        PrivateSubnet2: !GetAtt VPCStack.Outputs.PrivateSubnet2
+        ActiveDirectorySecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.ActiveDirectorySecurityGroup
+        RepositorySecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.RepositorySecurityGroup
+        RenderNodeSecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.RenderNodeSecurityGroup
+        WorkstationSecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.WorkstationSecurityGroup
+        DirectoryId: !GetAtt MicrosoftADStack.Outputs.DirectoryId
+        ADServer1PrivateIP: !GetAtt MicrosoftADStack.Outputs.ADServer1PrivateIP
+        ADServer2PrivateIP: !GetAtt MicrosoftADStack.Outputs.ADServer2PrivateIP
+        DomainDNSName: !Ref DomainDNSName
+        DomainAdminPassword: !Ref DomainAdminPassword
         ResourceTags: !Ref ResourceTags
       Tags:
         - Key: Studio

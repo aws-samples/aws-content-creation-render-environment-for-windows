@@ -77,7 +77,7 @@ Outputs:
     Value: !Join
       - ''
       - - !Ref DomainNetBIOSName
-        - \admin
+        - \Admin
     Description: Domain administrator account
 
   DirectoryId:

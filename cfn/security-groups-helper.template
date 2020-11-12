@@ -221,6 +221,9 @@ Resources:
       SourceSecurityGroupId: !Ref WorkstationSecurityGroup
 
 Outputs:
+  ActiveDirectorySecurityGroup:
+    Value: !Ref ActiveDirectorySecurityGroup
+
   LicenseServerSecurityGroup:
     Value: !Ref LicenseServerSecurityGroup
 
