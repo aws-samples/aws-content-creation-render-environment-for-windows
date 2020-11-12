@@ -18,7 +18,7 @@ Metadata:
           - PrivateSubnet1Cidr
           - PrivateSubnet2Cidr
       - Label:
-          default: Client VPN Configuration
+          default: Client VPN configuration
         Parameters:
           - CreateVPNEndpoint
           - ClientCidrBlock
@@ -32,6 +32,12 @@ Metadata:
           - DomainDNSName
           - DomainNetBIOSName
           - DomainAdminPassword
+      - Label:
+          default: Amazon FSx for Windows configuration
+        Parameters:
+          - FSxDeploymentType
+          - FSxStorageCapacity
+          - FSxThroughputCapacity
     ParameterLabels:
       AvailabilityZones:
         default: Availability Zones
@@ -46,7 +52,7 @@ Metadata:
       PrivateSubnet2Cidr:
         default: Private Subnet 2 CIDR
       CreateVPNEndpoint:
-        default: Create VPN Endpoint.
+        default: Create VPN Endpoint
       ClientCidrBlock:
         default: Client CIDR for VPN Endpoint
       ServerCertificateArn:
@@ -63,6 +69,12 @@ Metadata:
         default: Domain NetBIOS Name
       DomainAdminPassword:
         default: Domain Admin Password
+      FSxDeploymentType:
+        default: File system deployment type
+      FSxStorageCapacity:
+        default: File system storage capacity
+      FSxThroughputCapacity:
+        default: File systems throughput capacity
 
 Parameters:
   AvailabilityZones:
