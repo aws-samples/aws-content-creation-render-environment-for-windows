@@ -98,6 +98,11 @@ Resources:
       Tags:
         - Key: Name
           Value: license-server-sg
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3389
+          ToPort: 3389
+          CidrIp: 0.0.0.0/0
 
   RepositorySecurityGroup:
     Type: AWS::EC2::SecurityGroup

@@ -38,6 +38,18 @@ Metadata:
           - FSxDeploymentType
           - FSxStorageCapacity
           - FSxThroughputCapacity
+      - Label:
+          default: Workstation configuration
+        Parameters:
+          - WorkstationConnectionManager
+          - WorkstationAccessCIDR
+      - Label:
+          default: License server configuration
+        Parameters:
+          - LicenseServerAmiId
+          - LicenseServerInstanceType
+          - LicenseServerVersion
+
     ParameterLabels:
       AvailabilityZones:
         default: Availability Zones
@@ -75,6 +87,16 @@ Metadata:
         default: File system storage capacity
       FSxThroughputCapacity:
         default: File systems throughput capacity
+      WorkstationConnectionManager:
+        deafult: Workstation connection manager
+      WorkstationAccessCIDR:
+        default: Workstation access CIDR
+      LicenseServerAmiId:
+        default: License server AMI ID
+      LicenseServerInstanceType:
+        default: License server instance type
+      LicenseServerVersion:
+        default: License server software version
 
 Parameters:
   AvailabilityZones:
@@ -86,35 +108,35 @@ Parameters:
     Description: 'The CIDR block for the VPC.'
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/16-28'
-    Default: '10.0.0.0/16'
+    Default: 10.0.0.0/16
 
   PublicSubnet1Cidr:
     Type: String
     Description: 'The CIDR block for the Public Subnet located in Availability Zone 1 of the VPC.'
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/16-28'
-    Default: '10.0.0.0/24'
+    Default: 10.0.0.0/24
 
   PublicSubnet2Cidr:
     Type: String
     Description: 'The CIDR block for the Public Subnet located in Availability Zone 2 of the VPC.'
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/16-28'
-    Default: '10.0.1.0/24'
+    Default: 10.0.1.0/24
 
   PrivateSubnet1Cidr:
     Type: String
     Description: 'The CIDR block for the Private Subnet located in Availability Zone 1 of the VPC.'
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/16-28'
-    Default: '10.0.2.0/24'
+    Default: 10.0.2.0/24
 
   PrivateSubnet2Cidr:
     Type: String
     Description: 'The CIDR block for the Private Subnet located in Availability Zone 2 of the VPC.'
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/16-28'
-    Default: '10.0.3.0/24'
+    Default: 10.0.3.0/24
 
   CreateVPNEndpoint:
     Type: String
@@ -130,24 +152,24 @@ Parameters:
     Description: 'If creating Client VPN endpoint in the solution, specify the IPv4 address range. It should be in CIDR notation from which to assign client IP addresses. The address range cannot overlap with the local CIDR of the VPC in which the associated subnet.'
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-9]|3[0-2]))$
     ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/16-32'
-    Default: '10.50.0.0/20'
+    Default: 10.50.0.0/20
 
   ServerCertificateArn:
     Type: String
     Description: 'Required if Create Client VPN endpoint is set to `true`.'
-    Default: 'N/A'
+    Default: N/A
 
   ClientCertificateArn:
     Type: String
     Description: 'Required if Create Client VPN endpoint is set to `true`.'
-    Default: 'N/A'
+    Default: N/A
 
   TargetNetworkCidr:
     Type: String
     Description: 'If creating Client VPN endpoint in the solution, specify the IPv4 address range, in CIDR notation, of the network for which access is being authorized.'
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(0[0-9]|1[0-9]|2[0-9]|3[0-2]))$
     ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/0-32'
-    Default: '10.0.0.0/16'
+    Default: 10.0.0.0/16
 
   Edition:
     Type: String
@@ -155,7 +177,7 @@ Parameters:
     AllowedValues:
       - Standard
       - Enterprise
-    Default: 'Standard'
+    Default: Standard
 
   DomainDNSName:
     Type: String
@@ -163,7 +185,7 @@ Parameters:
     MinLength: 2
     MaxLength: 25
     AllowedPattern: '[a-zA-Z0-9\-]+\..+'
-    Default: 'mystudio.com'
+    Default: mystudio.com
 
   DomainNetBIOSName:
     Type: String
@@ -171,7 +193,7 @@ Parameters:
     MinLength: 1
     MaxLength: 15
     AllowedPattern: '[a-zA-Z0-9\-]+'
-    Default: 'mystudio'
+    Default: mystudio
 
   DomainAdminPassword:
     Type: String
@@ -188,7 +210,7 @@ Parameters:
       - MULTI_AZ_1
       - SINGLE_AZ_2
       - SINGLE_AZ_1
-    Default: 'MULTI_AZ_1'
+    Default: MULTI_AZ_1
 
   FSxStorageCapacity:
     Type: Number
@@ -218,14 +240,32 @@ Parameters:
     AllowedValues:
       - teradici
       - nicedcv
-    Default: 'teradici'
+    Default: teradici
 
   WorkstationAccessCIDR:
     Type: String
     Description: "CIDR block of an on-premise IP address. Input your network's current public or private IP depending if the Workstation is being placed in a public or private subnet."
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/0-32'
-    Default: '0.0.0.0/0'
+    Default: 0.0.0.0/0
+
+  LicenseServerAmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Description: 'Latest Windows AMI Using Systems Manager Parameter Store.'
+    Default: /aws/service/ami-windows-latest/Windows_Server-2019-English-Full-Base
+
+  LicenseServerInstanceType:
+    Type: String
+    Description: 'The EC2 instance type for the Deadline License server.'
+    Default: m5.large
+
+  LicenseServerVersion:
+    Type: String
+    Description: 'Version of the License server software.'
+    AllowedValues:
+      - 1.1
+      - 11.13.1.2.0
+    Default: 1.1
 
   Environment:
     Type: String
@@ -234,12 +274,19 @@ Parameters:
       - DEV
       - TEST
       - PROD
-    Default: 'DEV'
+    Default: DEV
 
   ResourceTags:
     Type: String
     Description: Tag resources, which can help you identify and categorize them. For example project or application name e.g. MyAwesomeApp.
-    Default: 'mystudio'
+    Default: mystudioproject
+
+  ArtefactBucketName:
+    Type: String
+    Description: 'S3 bucket name for the application assets.'
+    AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-.]*[0-9a-zA-Z])*$
+    ConstraintDescription: 'S3 bucket name can include numbers, lowercase letters, uppercase letters, periods (.), and hyphens (-). It cannot start or end with a hyphen (-).'
+    Default: aws-digital-content-creation-render-environment
 
 Conditions:
   CreateClientVPN:
@@ -253,7 +300,7 @@ Resources:
       Parameters:
         WorkstationConnectionManager: !Ref WorkstationConnectionManager
       Tags:
-        - Key: Studio
+        - Key: Project
           Value: !Ref ResourceTags
         - Key: Environment
           Value: !Ref Environment
@@ -274,7 +321,7 @@ Resources:
         PrivateSubnet2Cidr: !Ref PrivateSubnet2Cidr
         ResourceTags: !Ref ResourceTags
       Tags:
-        - Key: Studio
+        - Key: Project
           Value: !Ref ResourceTags
         - Key: Environment
           Value: !Ref Environment
@@ -292,7 +339,7 @@ Resources:
         WorkstationAccessCIDR: !Ref WorkstationAccessCIDR
         WorkstationConnectionManager: !Ref WorkstationConnectionManager
       Tags:
-        - Key: Studio
+        - Key: Project
           Value: !Ref ResourceTags
         - Key: Environment
           Value: !Ref Environment
@@ -309,6 +356,11 @@ Resources:
         SubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1
         TargetNetworkCidr: !Ref TargetNetworkCidr
         VPC: !GetAtt VPCStack.Outputs.VpcID
+      Tags:
+        - Key: Project
+          Value: !Ref ResourceTags
+        - Key: Environment
+          Value: !Ref Environment
 
   MicrosoftADStack:
     Type: AWS::CloudFormation::Stack
@@ -324,7 +376,7 @@ Resources:
         PrivateSubnet2: !GetAtt VPCStack.Outputs.PrivateSubnet2
         ResourceTags: !Ref ResourceTags
       Tags:
-        - Key: Studio
+        - Key: Project
           Value: !Ref ResourceTags
         - Key: Environment
           Value: !Ref Environment
@@ -352,7 +404,46 @@ Resources:
         DomainAdminPassword: !Ref DomainAdminPassword
         ResourceTags: !Ref ResourceTags
       Tags:
-        - Key: Studio
+        - Key: Project
+          Value: !Ref ResourceTags
+        - Key: Environment
+          Value: !Ref Environment
+
+  FSxDNSNameStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: fsx-dns-name.template
+      Parameters:
+        FSxFileSystemId: !GetAtt FSxWindowsStack.Outputs.FSxFileSystemId
+        ResourceTags: !Ref ResourceTags
+      Tags:
+        - Key: Project
+          Value: !Ref ResourceTags
+        - Key: Environment
+          Value: !Ref Environment
+
+  LicenseServerStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: license-server.template
+      Parameters:
+        PrivateSubnet1: !GetAtt VPCStack.Outputs.PublicSubnet1
+        ActiveDirectorySecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.ActiveDirectorySecurityGroup
+        LicenseServerSecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.LicenseServerSecurityGroup
+        ActiveDirectoryDocument: !GetAtt IAMStack.Outputs.ActiveDirectoryDocument
+        DirectoryId: !GetAtt MicrosoftADStack.Outputs.DirectoryId
+        ADServer1PrivateIP: !GetAtt MicrosoftADStack.Outputs.ADServer1PrivateIP
+        ADServer2PrivateIP: !GetAtt MicrosoftADStack.Outputs.ADServer2PrivateIP
+        DomainDNSName: !Ref DomainDNSName
+        FSxNetworkMapping: !GetAtt FSxDNSNameStack.Outputs.FSxNetworkMapping
+        InstanceType: !Ref LicenseServerInstanceType
+        InstanceAMI: !Ref LicenseServerAmiId
+        EC2InstanceProfile: !GetAtt IAMStack.Outputs.EC2InstanceProfile
+        LicenseServerVersion: !Ref LicenseServerVersion
+        ResourceTags: !Ref ResourceTags
+        ArtefactBucketName: !Ref ArtefactBucketName
+      Tags:
+        - Key: Project
           Value: !Ref ResourceTags
         - Key: Environment
           Value: !Ref Environment

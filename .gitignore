@@ -2,6 +2,9 @@
 ### Local development
 .custom.mk
 cfn/packaged.template
+src
+!src/fsx-dns/fsx_dns.py
+!src/fsx-dns/requirements.txt
 
 ### VirtualEnv template
 # Virtualenv

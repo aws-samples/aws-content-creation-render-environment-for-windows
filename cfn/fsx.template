@@ -96,6 +96,9 @@ Resources:
     Properties:
       GroupDescription: Base Security Group for SecGrp
       VpcId: !Ref VpcId
+      Tags:
+        - Key: Name
+          Value: fsx-sg
       SecurityGroupIngress:
         - IpProtocol: udp
           CidrIp: !Ref VPCCidr
@@ -161,3 +164,6 @@ Resources:
 Outputs:
   FSxFileSystemId:
     Value: !Ref FSxFileSystem
+
+#  FSxDNSName:
+#    Value: !GetAtt FSxFileSystemId.DNSName

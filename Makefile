@@ -21,8 +21,9 @@ help:
 # Install local dependencies and git hooks
 init: venv
 	venv/bin/pre-commit install
+	make build
 
-deploy:
+deploy: build
 	@printf "\n--> Packaging and uploading templates to the %s S3 bucket ...\n" $(BUCKET_NAME)
 	@aws cloudformation package \
 	  --template-file ./cfn/main.template \
@@ -45,6 +46,12 @@ deploy:
 	  	DomainAdminPassword=$(DOMAIN_ADMIN_PASSWORD) \
 		WorkstationAccessCIDR=$(WORKSTATION_ACCESS_CIDR) \
 		WorkstationConnectionManager=$(WORKSTATION_CONNECTION_MANAGER)
+
+build:
+	@for fn in src/*; do \
+  		printf "\n--> Installing %s requirements...\n" $${fn}; \
+  		pip install -r $${fn}/requirements.txt --target $${fn} --upgrade --use-feature=2020-resolver; \
+  	done
 
 # virtualenv setup
 venv: venv/bin/activate
