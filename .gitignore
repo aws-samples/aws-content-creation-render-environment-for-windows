@@ -5,6 +5,7 @@ cfn/packaged.template
 src
 !src/fsx-dns/fsx_dns.py
 !src/fsx-dns/requirements.txt
+certs
 
 ### VirtualEnv template
 # Virtualenv
@@ -15,7 +16,6 @@ src
 [Ll]ib
 [Ll]ib64
 [Ll]ocal
-[Ss]cripts
 pyvenv.cfg
 .venv
 pip-selfcheck.json

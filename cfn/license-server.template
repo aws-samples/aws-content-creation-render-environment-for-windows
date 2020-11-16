@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Provides configuration for a Deadline license server instance.
+Description: 'Provides configuration for a license server instance.'
 
 Parameters:
   PrivateSubnet1:
@@ -38,14 +38,14 @@ Parameters:
   EC2InstanceProfile:
     Type: String
 
-#  LicenseServerVersion:
-#    Type: String
+  LicenseServerVersion:
+    Type: String
 
   ResourceTags:
     Type: String
 
-#  ArtefactBucketName:
-#    Type: String
+  ArtefactBucketName:
+    Type: String
 
 Resources:
   LicenseServerInstance:
@@ -54,6 +54,8 @@ Resources:
       AWS::CloudFormation::Init:
         config:
           files:
+            C:\cfn\scripts\install-packages.ps1:
+              source: !Sub 'https://rezabekf-development-bucket.s3-${AWS::Region}.${AWS::URLSuffix}/scripts/install-packages.ps1'
             C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\automount.bat:
               content: !Sub |
                 @echo OFF
@@ -76,6 +78,10 @@ Resources:
                 triggers=post.update
                 path=Resources.LicenseServerInstance.Metadata.AWS::CloudFormation::Init
                 action=cfn-init.exe -v --stack ${AWS::StackId} --resource LicenseServerInstance --region ${AWS::Region}
+          commands:
+            01-install-packages:
+              command: 'powershell.exe -ExecutionPolicy Unrestricted C:\cfn\scripts\install-packages.ps1 -Verbose'
+              waitAfterCompletion: 0
           services:
             windows:
               cfn-hup:
@@ -130,8 +136,14 @@ Resources:
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: 'PT15M'
+        Timeout: PT20M
 
 Outputs:
   LicenseServerInstancePrivateIp:
     Value: !GetAtt LicenseServerInstance.PrivateIp
+
+  LicenseServerVersion:
+    Value: !Ref LicenseServerVersion
+
+  ArtefactBucket:
+    Value: !Ref ArtefactBucketName
