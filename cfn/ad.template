@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Provides managed Microsoft AD Directory Service'
+Description: 'Provides managed Microsoft AD Directory Service.'
 
 Parameters:
   Edition:

@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Provides VPC networking configuration'
+Description: 'Provides VPC networking configuration.'
 
 Parameters:
   AvailabilityZones:

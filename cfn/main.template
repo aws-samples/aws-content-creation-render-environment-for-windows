@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Description of the project (uksb-1rab36c41)
+Description: 'Description of the project (uksb-1rab36c41).'
 
 Metadata:
   Version: 0.0.1
@@ -166,7 +166,7 @@ Parameters:
 
   TargetNetworkCidr:
     Type: String
-    Description: 'If creating Client VPN endpoint in the solution, specify the IPv4 address range, in CIDR notation, of the network for which access is being authorized.'
+    Description: 'If creating Client VPN endpoint in the solution, specify the IPv4 address range, in CIDR notation, of the network for which access is being authorized. For example the CIDR of the VPC.'
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(0[0-9]|1[0-9]|2[0-9]|3[0-2]))$
     ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/0-32'
     Default: 10.0.0.0/16
@@ -355,7 +355,8 @@ Resources:
         ClientCertificateArn: !Ref ClientCertificateArn
         SubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1
         TargetNetworkCidr: !Ref TargetNetworkCidr
-        VPC: !GetAtt VPCStack.Outputs.VpcID
+        VpcID: !GetAtt VPCStack.Outputs.VpcID
+        ResourceTags: !Ref ResourceTags
       Tags:
         - Key: Project
           Value: !Ref ResourceTags
@@ -427,7 +428,7 @@ Resources:
     Properties:
       TemplateURL: license-server.template
       Parameters:
-        PrivateSubnet1: !GetAtt VPCStack.Outputs.PublicSubnet1
+        PrivateSubnet1: !GetAtt VPCStack.Outputs.PrivateSubnet1
         ActiveDirectorySecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.ActiveDirectorySecurityGroup
         LicenseServerSecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.LicenseServerSecurityGroup
         ActiveDirectoryDocument: !GetAtt IAMStack.Outputs.ActiveDirectoryDocument
@@ -447,3 +448,14 @@ Resources:
           Value: !Ref ResourceTags
         - Key: Environment
           Value: !Ref Environment
+
+Outputs:
+  ClientVpnEndpointID:
+    Condition: CreateClientVPN
+    Value: !GetAtt ClientVPNStack.Outputs.ClientVpnEndpointID
+
+  LicenseServerIPAddress:
+    Value: !GetAtt LicenseServerStack.Outputs.LicenseServerInstancePrivateIp
+
+  DomainUser:
+    Value: !GetAtt MicrosoftADStack.Outputs.DomainAdmin

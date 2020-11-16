@@ -1,55 +1,51 @@
----
-AWSTemplateFormatVersion: '2010-09-09'
-Description: 'This template provisions Client VPN Resources'
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'Provides configuration for Client VPN Endpoint.'
+
 Parameters:
   ClientCidrBlock:
     Type: String
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
-    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
 
   ServerCertificateArn:
-    Description: Specify Server Cert Arn for VPN endpoint.
     Type: String
 
   ClientCertificateArn:
-    Description: Specify Client Cert Arn for VPN endpoint.
     Type: String
 
   SubnetID:
-    Description: The ID of the subnet to associate with the Client VPN endpoint.
     Type: String
 
   TargetNetworkCidr:
-    Description: The IPv4 address range, in CIDR notation, of the network for which access is being authorized.
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
-    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
     Type: String
 
-  VPC:
-    Description: The ID of the VPC to associate with the Client VPN endpoint.
+  VpcID:
+    Type: String
+
+  ResourceTags:
     Type: String
 
 Resources:
   ClientVpnEndpoint:
     Type: AWS::EC2::ClientVpnEndpoint
     Properties:
+      Description: 'Client VPN to connect to instances in Private Subnet 1'
       AuthenticationOptions:
         - MutualAuthentication:
             ClientRootCertificateChainArn: !Ref ClientCertificateArn
-          Type: "certificate-authentication"
+          Type: certificate-authentication
       ClientCidrBlock: !Ref ClientCidrBlock
       ConnectionLogOptions:
         Enabled: false
-      Description: "Client VPN to connect to instances in Private Subnet 1"
       ServerCertificateArn: !Ref ServerCertificateArn
-      VpcId: !Ref VPC
+      VpcId: !Ref VpcID
       SecurityGroupIds:
         - !Ref VPNSecurityGroup
       TagSpecifications:
         - ResourceType: client-vpn-endpoint
           Tags:
             - Key: Name
-              Value: VFX-ClientVPN
+              Value: !Join [ '/', [ !Ref ResourceTags, client-vpn ] ]
 
   VpnEndpointTargetNetworkAssociation:
     Type: AWS::EC2::ClientVpnTargetNetworkAssociation
@@ -60,34 +56,37 @@ Resources:
   VpnEndpointAuthorizationRule:
     Type: AWS::EC2::ClientVpnAuthorizationRule
     Properties:
+      Description: 'Allow access to studio host subnet'
       ClientVpnEndpointId: !Ref ClientVpnEndpoint
       AuthorizeAllGroups: true
-      Description: Allow access to VFX Host subnet.
       TargetNetworkCidr: !Ref TargetNetworkCidr
 
   InternetAuthRule:
-    Type: "AWS::EC2::ClientVpnAuthorizationRule"
+    Type: AWS::EC2::ClientVpnAuthorizationRule
     Properties:
+      Description: 'Allow access to internet'
       ClientVpnEndpointId: !Ref ClientVpnEndpoint
       AuthorizeAllGroups: true
-      TargetNetworkCidr: "0.0.0.0/0"
-      Description: "Allow access to internet"
+      TargetNetworkCidr: 0.0.0.0/0
 
   InternetRoute:
-    Type: "AWS::EC2::ClientVpnRoute"
+    Type: AWS::EC2::ClientVpnRoute
     DependsOn: VpnEndpointTargetNetworkAssociation
     Properties:
+      Description: 'Route to the internet'
       ClientVpnEndpointId: !Ref ClientVpnEndpoint
       TargetVpcSubnetId: !Ref SubnetID
-      DestinationCidrBlock: "0.0.0.0/0"
-      Description: "Route to the internet"
+      DestinationCidrBlock: 0.0.0.0/0
 
   VPNSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupName: Security Group for VPN Clients
-      GroupDescription: This security group is attached to the Client VPN Endpoint.
-      VpcId: !Ref VPC
+      GroupDescription: 'Security group for Client VPN Endpoint'
+      VpcId: !Ref VpcID
+      Tags:
+        - Key: Name
+          Value: client-vpn-sg
 
   VPNHostSecurityGroupIngress1:
     Type: AWS::EC2::SecurityGroupIngress

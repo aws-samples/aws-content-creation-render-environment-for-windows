@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Provides FSx for Windows file system.
+Description: 'Provides FSx for Windows file system.'
 
 Parameters:
   DeploymentType:

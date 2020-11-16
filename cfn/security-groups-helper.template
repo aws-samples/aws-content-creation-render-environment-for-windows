@@ -1,5 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Provides cross-reference for Security Groups in the ingress and egress rules.
+Description: 'Provides cross-reference for Security Groups in the ingress and egress rules.'
+
 Parameters:
   VpcID:
     Type: String
@@ -35,7 +36,7 @@ Resources:
   ActiveDirectorySecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Security group for Microsoft AD Domain Members
+      GroupDescription: 'Security group for Microsoft AD Domain Members'
       VpcId: !Ref VpcID
       SecurityGroupIngress:
         - IpProtocol: tcp
@@ -93,7 +94,7 @@ Resources:
   LicenseServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Security group for DL License Server instance
+      GroupDescription: 'Security group for License Server instance'
       VpcId: !Ref VpcID
       Tags:
         - Key: Name
@@ -107,7 +108,7 @@ Resources:
   RepositorySecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Security group for DL Repository instance
+      GroupDescription: 'Security group for Repository instance'
       VpcId: !Ref VpcID
       Tags:
         - Key: Name
@@ -116,7 +117,7 @@ Resources:
   RenderNodeSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Security group for DL Render Node instance
+      GroupDescription: 'Security group for Render Node instances'
       VpcId: !Ref VpcID
       Tags:
         - Key: Name
@@ -125,7 +126,7 @@ Resources:
   WorkstationSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Security group for Workstation instance
+      GroupDescription: 'Security group for Workstation instance'
       VpcId: !Ref VpcID
       SecurityGroupIngress:
         Fn::If:

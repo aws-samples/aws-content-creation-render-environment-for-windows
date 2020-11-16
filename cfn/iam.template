@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: 'Provides the IAM policies and access configuration for the AWS Digital Content Creation Architecture.'
+Description: 'Provides the IAM policies and access configuration for the studio.'
 
 Parameters:
   WorkstationConnectionManager:
@@ -36,6 +36,7 @@ Resources:
               directoryId: "{{ directoryId}}"
               directoryName: "{{ directoryName }}"
               dnsIpAddresses: "{{ dnsIpAddresses }}"
+
   #-- The managed policy for Amazon EC2 Role to enable AWS Systems Manager service core functionality. --#
   EC2SessionManagerRole:
     Type: AWS::IAM::Role
@@ -89,8 +90,9 @@ Resources:
           - Effect: Allow
             Action:
               - s3:GetObject
-            Resource: !Sub arn:aws:s3:::dcv-license.${AWS::Region}/*
-      Roles: !Ref WorkstationSessionManagerRole
+            Resource: !Sub 'arn:aws:s3:::dcv-license.${AWS::Region}/*'
+      Roles:
+        - !Ref WorkstationSessionManagerRole
 
   WorkstationInstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -117,6 +119,7 @@ Resources:
 Outputs:
   ActiveDirectoryDocument:
     Value: !Ref ActiveDirectoryDocument
+
   EC2InstanceProfile:
     Value: !Ref EC2InstanceProfile
 
