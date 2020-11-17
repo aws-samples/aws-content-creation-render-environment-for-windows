@@ -1,5 +1,6 @@
-AWSTemplateFormatVersion: 2010-09-09
-Description: 'Provides configuration for a license server instance.'
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Provides configuration for a license server instance.
 
 Parameters:
   PrivateSubnet1:
@@ -49,13 +50,17 @@ Parameters:
 
 Resources:
   LicenseServerInstance:
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: PT20M
     Type: AWS::EC2::Instance
     Metadata:
       AWS::CloudFormation::Init:
         config:
           files:
             C:\cfn\scripts\install-packages.ps1:
-              source: !Sub 'https://rezabekf-development-bucket.s3-${AWS::Region}.${AWS::URLSuffix}/scripts/install-packages.ps1'
+              source: !Sub https://${ArtefactBucketName}.s3.${AWS::URLSuffix}/scripts/install-packages.ps1
             C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\automount.bat:
               content: !Sub |
                 @echo OFF
@@ -80,7 +85,7 @@ Resources:
                 action=cfn-init.exe -v --stack ${AWS::StackId} --resource LicenseServerInstance --region ${AWS::Region}
           commands:
             01-install-packages:
-              command: 'powershell.exe -ExecutionPolicy Unrestricted C:\cfn\scripts\install-packages.ps1 -Verbose'
+              command: powershell.exe -ExecutionPolicy Unrestricted C:\cfn\scripts\install-packages.ps1 -Verbose
               waitAfterCompletion: 0
           services:
             windows:
@@ -88,8 +93,8 @@ Resources:
                 enabled: true
                 ensureRunning: true
                 files:
-                  - 'c:\\cfn\\cfn-hup.conf'
-                  - 'c:\\cfn\\hooks.d\\cfn-auto-reloader.conf'
+                  - c:\\cfn\\cfn-hup.conf
+                  - c:\\cfn\\hooks.d\\cfn-auto-reloader.conf
                 audiosrv:
                   enabled: true
                   ensureRunning: true
@@ -112,31 +117,27 @@ Resources:
           AssociationParameters:
             - Key: directoryId
               Value:
-              - !Ref DirectoryId
+                - !Ref DirectoryId
             - Key: directoryName
               Value:
-              - !Ref DomainDNSName
+                - !Ref DomainDNSName
             - Key: dnsIpAddresses
               Value:
-              - !Ref ADServer1PrivateIP
-              - !Ref ADServer2PrivateIP
+                - !Ref ADServer1PrivateIP
+                - !Ref ADServer2PrivateIP
       SecurityGroupIds:
         - !Ref ActiveDirectorySecurityGroup
         - !Ref LicenseServerSecurityGroup
       SubnetId: !Ref PrivateSubnet1
       Tags:
         - Key: Name
-          Value: !Join [ '/', [ !Ref ResourceTags, license-server ] ]
-      UserData:
-        Fn::Base64: !Sub |
+          Value: !Join [/, [!Ref ResourceTags, license-server]]
+      UserData: !Base64
+        Fn::Sub: |
           <script>
           cfn-init.exe -v --stack ${AWS::StackName} --resource LicenseServerInstance --region ${AWS::Region}
           cfn-signal.exe -e %errorlevel% --stack ${AWS::StackName} --resource LicenseServerInstance --region ${AWS::Region}
           </script>
-    CreationPolicy:
-      ResourceSignal:
-        Count: 1
-        Timeout: PT20M
 
 Outputs:
   LicenseServerInstancePrivateIp:
