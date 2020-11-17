@@ -1,5 +1,6 @@
-AWSTemplateFormatVersion: 2010-09-09
-Description: 'Provides FSx for Windows file system.'
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Provides FSx for Windows file system.
 
 Parameters:
   DeploymentType:
@@ -56,8 +57,7 @@ Parameters:
     Type: String
 
 Conditions:
-  IsMultiAZ:
-    !Equals [!Ref DeploymentType, MULTI_AZ_1]
+  IsMultiAZ: !Equals [!Ref DeploymentType, MULTI_AZ_1]
 
 Resources:
   FSxFileSystem:
@@ -73,16 +73,16 @@ Resources:
       StorageCapacity: !Ref StorageCapacity
       SubnetIds:
         - !Ref PrivateSubnet1
-        - !If [ IsMultiAZ, !Ref PrivateSubnet2, !Ref 'AWS::NoValue' ]
+        - !If [IsMultiAZ, !Ref PrivateSubnet2, !Ref 'AWS::NoValue']
       Tags:
         - Key: Name
-          Value: !Join [ '/', [ !Ref ResourceTags, FSx ] ]
+          Value: !Join [/, [!Ref ResourceTags, FSx]]
       WindowsConfiguration:
         ActiveDirectoryId: !Ref DirectoryId
         ThroughputCapacity: !Ref FSxThroughputCapacity
         AutomaticBackupRetentionDays: 0
         DeploymentType: !Ref DeploymentType
-        PreferredSubnetId: !If [ IsMultiAZ, !Ref PrivateSubnet1, !Ref 'AWS::NoValue' ]
+        PreferredSubnetId: !If [IsMultiAZ, !Ref PrivateSubnet1, !Ref 'AWS::NoValue']
         SelfManagedActiveDirectoryConfiguration:
           DnsIps:
             - !Ref ADServer1PrivateIP
@@ -164,6 +164,3 @@ Resources:
 Outputs:
   FSxFileSystemId:
     Value: !Ref FSxFileSystem
-
-#  FSxDNSName:
-#    Value: !GetAtt FSxFileSystemId.DNSName

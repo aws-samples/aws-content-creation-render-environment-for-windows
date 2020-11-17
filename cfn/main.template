@@ -1,8 +1,10 @@
-AWSTemplateFormatVersion: 2010-09-09
-Description: 'Description of the project (uksb-1rab36c41).'
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Description of the project (uksb-1rab36c41).
 
 Metadata:
   Version: 0.0.1
+
   AWS::CloudFormation::Interface:
     ParameterGroups:
       - Label:
@@ -49,7 +51,6 @@ Metadata:
           - LicenseServerAmiId
           - LicenseServerInstanceType
           - LicenseServerVersion
-
     ParameterLabels:
       AvailabilityZones:
         default: Availability Zones
@@ -100,112 +101,112 @@ Metadata:
 
 Parameters:
   AvailabilityZones:
+    Description: The list of Availability Zones to use for the subnets in the VPC. Select **two** Availability Zones from your list.
     Type: List<AWS::EC2::AvailabilityZone::Name>
-    Description: 'The list of Availability Zones to use for the subnets in the VPC. Select **two** Availability Zones from your list.'
 
   VPCCidr:
+    Description: The CIDR block for the VPC.
     Type: String
-    Description: 'The CIDR block for the VPC.'
-    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
-    ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/16-28'
     Default: 10.0.0.0/16
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
 
   PublicSubnet1Cidr:
+    Description: The CIDR block for the Public Subnet located in Availability Zone 1 of the VPC.
     Type: String
-    Description: 'The CIDR block for the Public Subnet located in Availability Zone 1 of the VPC.'
-    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
-    ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/16-28'
     Default: 10.0.0.0/24
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
 
   PublicSubnet2Cidr:
+    Description: The CIDR block for the Public Subnet located in Availability Zone 2 of the VPC.
     Type: String
-    Description: 'The CIDR block for the Public Subnet located in Availability Zone 2 of the VPC.'
-    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
-    ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/16-28'
     Default: 10.0.1.0/24
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
 
   PrivateSubnet1Cidr:
+    Description: The CIDR block for the Private Subnet located in Availability Zone 1 of the VPC.
     Type: String
-    Description: 'The CIDR block for the Private Subnet located in Availability Zone 1 of the VPC.'
-    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
-    ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/16-28'
     Default: 10.0.2.0/24
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
 
   PrivateSubnet2Cidr:
+    Description: The CIDR block for the Private Subnet located in Availability Zone 2 of the VPC.
     Type: String
-    Description: 'The CIDR block for the Private Subnet located in Availability Zone 2 of the VPC.'
-    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
-    ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/16-28'
     Default: 10.0.3.0/24
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
 
   CreateVPNEndpoint:
+    Description: Should the CloudFormation create a Client VPN Endpoint. Workstation will be placed in Private subnet, if set to 'true'. (Specify 'true' or 'false')
     Type: String
-    Description: "Should the CloudFormation create a Client VPN Endpoint. Workstation will be placed in Private subnet, if set to 'true'. (Specify 'true' or 'false')"
-    ConstraintDescription: Must specify 'true' or 'false'
     AllowedValues:
       - false
       - true
     Default: false
+    ConstraintDescription: Must specify 'true' or 'false'
 
   ClientCidrBlock:
+    Description: If creating Client VPN endpoint in the solution, specify the IPv4 address range. It should be in CIDR notation from which to assign client IP addresses. The address range cannot overlap with the local CIDR of the VPC in which the associated subnet.
     Type: String
-    Description: 'If creating Client VPN endpoint in the solution, specify the IPv4 address range. It should be in CIDR notation from which to assign client IP addresses. The address range cannot overlap with the local CIDR of the VPC in which the associated subnet.'
-    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-9]|3[0-2]))$
-    ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/16-32'
     Default: 10.50.0.0/20
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-9]|3[0-2]))$
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-32
 
   ServerCertificateArn:
+    Description: Required if Create Client VPN endpoint is set to `true`.
     Type: String
-    Description: 'Required if Create Client VPN endpoint is set to `true`.'
     Default: N/A
 
   ClientCertificateArn:
+    Description: Required if Create Client VPN endpoint is set to `true`.
     Type: String
-    Description: 'Required if Create Client VPN endpoint is set to `true`.'
     Default: N/A
 
   TargetNetworkCidr:
+    Description: If creating Client VPN endpoint in the solution, specify the IPv4 address range, in CIDR notation, of the network for which access is being authorized. For example the CIDR of the VPC.
     Type: String
-    Description: 'If creating Client VPN endpoint in the solution, specify the IPv4 address range, in CIDR notation, of the network for which access is being authorized. For example the CIDR of the VPC.'
-    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(0[0-9]|1[0-9]|2[0-9]|3[0-2]))$
-    ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/0-32'
     Default: 10.0.0.0/16
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(0[0-9]|1[0-9]|2[0-9]|3[0-2]))$
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/0-32
 
   Edition:
+    Description: The AWS Microsoft AD edition. Valid values include Standard and Enterprise.
     Type: String
-    Description: 'The AWS Microsoft AD edition. Valid values include Standard and Enterprise.'
     AllowedValues:
       - Standard
       - Enterprise
     Default: Standard
 
   DomainDNSName:
+    Description: Fully qualified domain name (FQDN) of the forest root domain e.g. mystudio.com
     Type: String
-    Description: 'Fully qualified domain name (FQDN) of the forest root domain e.g. mystudio.com'
+    Default: mystudio.com
     MinLength: 2
     MaxLength: 25
     AllowedPattern: '[a-zA-Z0-9\-]+\..+'
-    Default: mystudio.com
 
   DomainNetBIOSName:
+    Description: NetBIOS name of the domain (upto 15 characters) for users of earlier versions of Windows e.g. mystudio
     Type: String
-    Description: 'NetBIOS name of the domain (upto 15 characters) for users of earlier versions of Windows e.g. mystudio'
+    Default: mystudio
     MinLength: 1
     MaxLength: 15
     AllowedPattern: '[a-zA-Z0-9\-]+'
-    Default: mystudio
 
   DomainAdminPassword:
+    Description: Password for the default administrative user named Admin. Must be between 8 and 64 characters, not contain the word "admin", and include letters, numbers and symbols.
     Type: String
-    Description: 'Password for the default administrative user named Admin. Must be between 8 and 64 characters, not contain the word "admin", and include letters, numbers and symbols.'
     MinLength: 8
     MaxLength: 64
     AllowedPattern: (?=^.{6,255}$)((?=.*\d)(?=.*[A-Z])(?=.*[a-z])|(?=.*\d)(?=.*[^A-Za-z0-9])(?=.*[a-z])|(?=.*[^A-Za-z0-9])(?=.*[A-Z])(?=.*[a-z])|(?=.*\d)(?=.*[A-Z])(?=.*[^A-Za-z0-9]))^.*
     NoEcho: true
 
   FSxDeploymentType:
+    Description: Specifies the file system deployment type
     Type: String
-    Description: 'Specifies the file system deployment type'
     AllowedValues:
       - MULTI_AZ_1
       - SINGLE_AZ_2
@@ -213,15 +214,15 @@ Parameters:
     Default: MULTI_AZ_1
 
   FSxStorageCapacity:
+    Description: The storage capacity of the file system being created. Valid values are 32 GiB - 65,536 GiB (64 TiB).
     Type: Number
-    Description: 'The storage capacity of the file system being created. Valid values are 32 GiB - 65,536 GiB (64 TiB).'
+    Default: 32
     MinValue: 32
     MaxValue: 65536
-    Default: 32
 
   FSxThroughputCapacity:
+    Description: The throughput capacity of an Amazon FSx file system, measured in megabytes per second in powers of 2 (8, 16, 32, ... , 1024) based on the system size.
     Type: Number
-    Description: 'The throughput capacity of an Amazon FSx file system, measured in megabytes per second in powers of 2 (8, 16, 32, ... , 1024) based on the system size.'
     AllowedValues:
       - 8
       - 16
@@ -235,41 +236,41 @@ Parameters:
     Default: 16
 
   WorkstationConnectionManager:
+    Description: Specify whether you want to run Teradici PCoIP or NiceDcv server to connect to the workstation.
     Type: String
-    Description: 'Specify whether you want to run Teradici PCoIP or NiceDcv server to connect to the workstation.'
     AllowedValues:
       - teradici
       - nicedcv
     Default: teradici
 
   WorkstationAccessCIDR:
+    Description: CIDR block of an on-premise IP address. Input your network's current public or private IP depending if the Workstation is being placed in a public or private subnet.
     Type: String
-    Description: "CIDR block of an on-premise IP address. Input your network's current public or private IP depending if the Workstation is being placed in a public or private subnet."
-    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
-    ConstraintDescription: 'CIDR block parameter must be in the form x.x.x.x/0-32'
     Default: 0.0.0.0/0
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/0-32
 
   LicenseServerAmiId:
+    Description: Latest Windows AMI Using Systems Manager Parameter Store.
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
-    Description: 'Latest Windows AMI Using Systems Manager Parameter Store.'
     Default: /aws/service/ami-windows-latest/Windows_Server-2019-English-Full-Base
 
   LicenseServerInstanceType:
+    Description: The EC2 instance type for the Deadline License server.
     Type: String
-    Description: 'The EC2 instance type for the Deadline License server.'
     Default: m5.large
 
   LicenseServerVersion:
+    Description: Version of the License server software.
     Type: String
-    Description: 'Version of the License server software.'
     AllowedValues:
       - 1.1
       - 11.13.1.2.0
     Default: 1.1
 
   Environment:
+    Description: The type of environment to tag your infrastructure with. You can specify DEV (development), TEST (test), or PROD (production).
     Type: String
-    Description: 'The type of environment to tag your infrastructure with. You can specify DEV (development), TEST (test), or PROD (production).'
     AllowedValues:
       - DEV
       - TEST
@@ -277,20 +278,19 @@ Parameters:
     Default: DEV
 
   ResourceTags:
-    Type: String
     Description: Tag resources, which can help you identify and categorize them. For example project or application name e.g. MyAwesomeApp.
+    Type: String
     Default: mystudioproject
 
   ArtefactBucketName:
+    Description: S3 bucket name for the application assets.
     Type: String
-    Description: 'S3 bucket name for the application assets.'
-    AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-.]*[0-9a-zA-Z])*$
-    ConstraintDescription: 'S3 bucket name can include numbers, lowercase letters, uppercase letters, periods (.), and hyphens (-). It cannot start or end with a hyphen (-).'
     Default: aws-digital-content-creation-render-environment
+    AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-.]*[0-9a-zA-Z])*$
+    ConstraintDescription: S3 bucket name can include numbers, lowercase letters, uppercase letters, periods (.), and hyphens (-). It cannot start or end with a hyphen (-).
 
 Conditions:
-  CreateClientVPN:
-    !Equals [!Ref CreateVPNEndpoint, true]
+  CreateClientVPN: !Equals [!Ref CreateVPNEndpoint, true]
 
 Resources:
   IAMStack:
@@ -310,10 +310,9 @@ Resources:
     Properties:
       TemplateURL: vpc.template
       Parameters:
-        AvailabilityZones:
-          Fn::Join:
-            - ','
-            - !Ref AvailabilityZones
+        AvailabilityZones: !Join
+          - ','
+          - !Ref AvailabilityZones
         VPCCidr: !Ref VPCCidr
         PublicSubnet1Cidr: !Ref PublicSubnet1Cidr
         PublicSubnet2Cidr: !Ref PublicSubnet2Cidr
@@ -346,7 +345,6 @@ Resources:
 
   ClientVPNStack:
     Type: AWS::CloudFormation::Stack
-    Condition: CreateClientVPN
     Properties:
       TemplateURL: client-vpn.template
       Parameters:
@@ -362,6 +360,7 @@ Resources:
           Value: !Ref ResourceTags
         - Key: Environment
           Value: !Ref Environment
+    Condition: CreateClientVPN
 
   MicrosoftADStack:
     Type: AWS::CloudFormation::Stack
@@ -451,8 +450,8 @@ Resources:
 
 Outputs:
   ClientVpnEndpointID:
-    Condition: CreateClientVPN
     Value: !GetAtt ClientVPNStack.Outputs.ClientVpnEndpointID
+    Condition: CreateClientVPN
 
   LicenseServerIPAddress:
     Value: !GetAtt LicenseServerStack.Outputs.LicenseServerInstancePrivateIp

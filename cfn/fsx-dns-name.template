@@ -1,6 +1,6 @@
-AWSTemplateFormatVersion: 2010-09-09
-Description: 'Get FSx DNS name for Windows file system.'
-Transform: AWS::Serverless-2016-10-31
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Get FSx DNS name for Windows file system.
 
 Parameters:
   FSxFileSystemId:
@@ -8,6 +8,8 @@ Parameters:
 
   ResourceTags:
     Type: String
+
+Transform: AWS::Serverless-2016-10-31
 
 Resources:
   FSxDnsNameFunction:
@@ -17,21 +19,21 @@ Resources:
       Runtime: python3.8
       CodeUri: ../src/fsx-dns/
       Policies:
-        - Version: '2012-10-17'
+        - Version: "2012-10-17"
           Statement:
             - Effect: Allow
               Action:
                 - fsx:DescribeFileSystems
               Resource: '*'
       Tags:
-        Name: !Join [ '/', [ !Ref ResourceTags, FSxDnsNameFunction ] ]
+        Name: !Join [/, [!Ref ResourceTags, FSxDnsNameFunction]]
 
   FSxDnsNameCustom:
     Type: Custom::FSxDnsName
-    Version: '1.0'
     Properties:
       ServiceToken: !GetAtt FSxDnsNameFunction.Arn
       FSxFileSystemId: !Ref FSxFileSystemId
+    Version: "1.0"
 
 Outputs:
   FSxNetworkMapping:
