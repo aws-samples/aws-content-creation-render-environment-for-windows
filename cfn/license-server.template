@@ -53,12 +53,17 @@ Resources:
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: PT20M
+        Timeout: PT15M
     Type: AWS::EC2::Instance
     Metadata:
       AWS::CloudFormation::Init:
         config:
+          sources:
+            C:\data\thinkbox: !Sub https://${ArtefactBucketName}.s3.${AWS::URLSuffix}/ThinkboxLicenseServer-${LicenseServerVersion}-windows-installer.exe.zip
           files:
+            C:\data\thinkbox\license.lic:
+              content: |
+                <License configuration>
             C:\cfn\scripts\install-packages.ps1:
               source: !Sub https://${ArtefactBucketName}.s3.${AWS::URLSuffix}/scripts/install-packages.ps1
             C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\automount.bat:
@@ -86,6 +91,9 @@ Resources:
           commands:
             01-install-packages:
               command: powershell.exe -ExecutionPolicy Unrestricted C:\cfn\scripts\install-packages.ps1 -Verbose
+              waitAfterCompletion: 0
+            05-install-license-server:
+              command: !Sub powershell.exe -Command "Start-Process -FilePath 'C:\data\thinkbox\ThinkboxLicenseServer-${LicenseServerVersion}-windows-installer.exe' -ArgumentList '--mode unattended', '--licenseFile C:\data\thinkbox\license.lic'"
               waitAfterCompletion: 0
           services:
             windows:

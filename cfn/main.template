@@ -265,7 +265,7 @@ Parameters:
     Type: String
     AllowedValues:
       - 1.1
-      - 11.13.1.2.0
+      - 11.13.1.2.1
     Default: 1.1
 
   Environment:
