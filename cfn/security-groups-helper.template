@@ -29,8 +29,13 @@ Parameters:
   WorkstationConnectionManager:
     Type: String
 
+  CreateVPNEndpoint:
+    Type: String
+
 Conditions:
   IsTeradici: !Equals [!Ref WorkstationConnectionManager, teradici]
+
+  IsClientVpn: !Equals [!Ref CreateVPNEndpoint, true]
 
 Resources:
   ActiveDirectorySecurityGroup:
@@ -91,6 +96,28 @@ Resources:
         - Key: Name
           Value: microsoft-ad-sg
 
+  # --> Client VPN Security Group
+
+  ClientVPNSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Client VPN Endpoint
+      VpcId: !Ref VpcID
+      Tags:
+        - Key: Name
+          Value: client-vpn-sg
+    Condition: IsClientVpn
+
+  VPNHostSecurityGroupIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref ClientVPNSecurityGroup
+      IpProtocol: "-1"
+      SourceSecurityGroupId: !Ref ClientVPNSecurityGroup
+    Condition: IsClientVpn
+
+  # --> License Server Security Group
+
   LicenseServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -99,6 +126,43 @@ Resources:
       Tags:
         - Key: Name
           Value: license-server-sg
+
+  RenderSchedulerToLicenseServerIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref LicenseServerSecurityGroup
+      Description: render-scheduler-sg
+      IpProtocol: "-1"
+      SourceSecurityGroupId: !Ref RenderSchedulerSecurityGroup
+
+  RenderNodeToLicenseServerIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref LicenseServerSecurityGroup
+      Description: render-node-sg
+      IpProtocol: "-1"
+      SourceSecurityGroupId: !Ref RenderNodeSecurityGroup
+
+  WorkstationToLicenseServerIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref LicenseServerSecurityGroup
+      Description: workstation-sg
+      IpProtocol: "-1"
+      SourceSecurityGroupId: !Ref WorkstationSecurityGroup
+
+  ClientVpnToLisenseServerIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref LicenseServerSecurityGroup
+      Description: client-vpn-sg
+      IpProtocol: tcp
+      FromPort: 3389
+      ToPort: 3389
+      SourceSecurityGroupId: !Ref ClientVPNSecurityGroup
+    Condition: IsClientVpn
+
+  # --> Render Scheduler Security Group
 
   RenderSchedulerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -109,68 +173,6 @@ Resources:
         - Key: Name
           Value: render-scheduler-sg
 
-  RenderNodeSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Security group for Render Node instances
-      VpcId: !Ref VpcID
-      Tags:
-        - Key: Name
-          Value: render-node-sg
-
-  WorkstationSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Security group for Workstation instance
-      VpcId: !Ref VpcID
-      SecurityGroupIngress: !If
-        - IsTeradici
-        - - IpProtocol: tcp
-            FromPort: 443
-            ToPort: 443
-            CidrIp: !Ref WorkstationAccessCIDR
-          - IpProtocol: tcp
-            FromPort: 4172
-            ToPort: 4172
-            CidrIp: !Ref WorkstationAccessCIDR
-          - IpProtocol: udp
-            FromPort: 4172
-            ToPort: 4172
-            CidrIp: !Ref WorkstationAccessCIDR
-        - - IpProtocol: tcp
-            FromPort: 8443
-            ToPort: 8443
-            CidrIp: !Ref WorkstationAccessCIDR
-      Tags:
-        - Key: Name
-          Value: workstation-sg
-          # <-- Grant access for Deadline Render Scheduler -->
-
-  RenderSchedulerToLicenseServerIngress:
-    Type: AWS::EC2::SecurityGroupIngress
-    Properties:
-      GroupId: !Ref LicenseServerSecurityGroup
-      Description: render-scheduler-sg
-      IpProtocol: "-1"
-      SourceSecurityGroupId: !Ref RenderSchedulerSecurityGroup
-
-  RenderSchedulerToRenderNodeIngress:
-    Type: AWS::EC2::SecurityGroupIngress
-    Properties:
-      GroupId: !Ref RenderNodeSecurityGroup
-      Description: render-scheduler-sg
-      IpProtocol: "-1"
-      SourceSecurityGroupId: !Ref RenderSchedulerSecurityGroup
-
-  RenderSchedulerToWorkstationIngress:
-    Type: AWS::EC2::SecurityGroupIngress
-    Properties:
-      GroupId: !Ref WorkstationSecurityGroup
-      Description: render-scheduler-sg
-      IpProtocol: "-1"
-      SourceSecurityGroupId: !Ref RenderSchedulerSecurityGroup
-      # <-- Grant access for Deadline Render Node -->
-
   RenderNodeToRenderSchedulerIngress:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
@@ -178,31 +180,6 @@ Resources:
       Description: render-node-sg
       IpProtocol: "-1"
       SourceSecurityGroupId: !Ref RenderNodeSecurityGroup
-
-  RenderNodeToWorkstationIngress:
-    Type: AWS::EC2::SecurityGroupIngress
-    Properties:
-      GroupId: !Ref WorkstationSecurityGroup
-      Description: render-node-sg
-      IpProtocol: "-1"
-      SourceSecurityGroupId: !Ref RenderNodeSecurityGroup
-
-  RenderNodeToLicenseServerIngress:
-    Type: AWS::EC2::SecurityGroupIngress
-    Properties:
-      GroupId: !Ref LicenseServerSecurityGroup
-      Description: render-node-sg
-      IpProtocol: "-1"
-      SourceSecurityGroupId: !Ref RenderNodeSecurityGroup
-      # <-- Grant access for Deadline Workstation -->
-
-  WorkstationToRenderNodeIngress:
-    Type: AWS::EC2::SecurityGroupIngress
-    Properties:
-      GroupId: !Ref RenderNodeSecurityGroup
-      Description: workstation-sg
-      IpProtocol: "-1"
-      SourceSecurityGroupId: !Ref WorkstationSecurityGroup
 
   WorkstationToRenderSchedulerIngress:
     Type: AWS::EC2::SecurityGroupIngress
@@ -212,17 +189,137 @@ Resources:
       IpProtocol: "-1"
       SourceSecurityGroupId: !Ref WorkstationSecurityGroup
 
-  WorkstationToLicenseServerIngress:
+  ClientVpnToRenderSchedulerIngress:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
-      GroupId: !Ref LicenseServerSecurityGroup
-      Description: deadline-workstation-sg
+      GroupId: !Ref RenderSchedulerSecurityGroup
+      Description: client-vpn-sg
+      IpProtocol: tcp
+      FromPort: 3389
+      ToPort: 3389
+      SourceSecurityGroupId: !Ref ClientVPNSecurityGroup
+    Condition: IsClientVpn
+
+  # --> Workstation Security Group
+
+  WorkstationSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Workstation instance
+      VpcId: !Ref VpcID
+      SecurityGroupIngress: !If
+        - IsTeradici
+        - !If
+          - IsClientVpn
+          - - IpProtocol: tcp
+              FromPort: 443
+              ToPort: 443
+              SourceSecurityGroupId: !Ref ClientVPNSecurityGroup
+              Description: client-vpn-sg
+            - IpProtocol: tcp
+              FromPort: 4172
+              ToPort: 4172
+              SourceSecurityGroupId: !Ref ClientVPNSecurityGroup
+              Description: client-vpn-sg
+            - IpProtocol: udp
+              FromPort: 4172
+              ToPort: 4172
+              SourceSecurityGroupId: !Ref ClientVPNSecurityGroup
+              Description: client-vpn-sg
+            - IpProtocol: tcp
+              FromPort: 3389
+              ToPort: 3389
+              SourceSecurityGroupId: !Ref ClientVPNSecurityGroup
+              Description: client-vpn-sg
+          - - IpProtocol: tcp
+              FromPort: 443
+              ToPort: 443
+              CidrIp: !Ref WorkstationAccessCIDR
+            - IpProtocol: tcp
+              FromPort: 4172
+              ToPort: 4172
+              CidrIp: !Ref WorkstationAccessCIDR
+            - IpProtocol: udp
+              FromPort: 4172
+              ToPort: 4172
+              CidrIp: !Ref WorkstationAccessCIDR
+            - IpProtocol: tcp
+              FromPort: 3389
+              ToPort: 3389
+              CidrIp: !Ref WorkstationAccessCIDR
+        - !If
+          - IsClientVpn
+          - - IpProtocol: tcp
+              FromPort: 8443
+              ToPort: 8443
+              SourceSecurityGroupId: !Ref ClientVPNSecurityGroup
+            - IpProtocol: tcp
+              FromPort: 3389
+              ToPort: 3389
+              SourceSecurityGroupId: !Ref ClientVPNSecurityGroup
+              Description: client-vpn-sg
+          - - IpProtocol: tcp
+              FromPort: 8443
+              ToPort: 8443
+              CidrIp: !Ref WorkstationAccessCIDR
+            - IpProtocol: tcp
+              FromPort: 3389
+              ToPort: 3389
+              CidrIp: !Ref WorkstationAccessCIDR
+      Tags:
+        - Key: Name
+          Value: workstation-sg
+
+  RenderSchedulerToWorkstationIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref WorkstationSecurityGroup
+      Description: render-scheduler-sg
+      IpProtocol: "-1"
+      SourceSecurityGroupId: !Ref RenderSchedulerSecurityGroup
+
+  RenderNodeToWorkstationIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref WorkstationSecurityGroup
+      Description: render-node-sg
+      IpProtocol: "-1"
+      SourceSecurityGroupId: !Ref RenderNodeSecurityGroup
+
+  # --> Render Node Security Group
+
+  RenderNodeSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Render Node instances
+      VpcId: !Ref VpcID
+      Tags:
+        - Key: Name
+          Value: render-node-sg
+
+  RenderSchedulerToRenderNodeIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref RenderNodeSecurityGroup
+      Description: render-scheduler-sg
+      IpProtocol: "-1"
+      SourceSecurityGroupId: !Ref RenderSchedulerSecurityGroup
+
+  WorkstationToRenderNodeIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref RenderNodeSecurityGroup
+      Description: workstation-sg
       IpProtocol: "-1"
       SourceSecurityGroupId: !Ref WorkstationSecurityGroup
 
 Outputs:
   ActiveDirectorySecurityGroup:
     Value: !Ref ActiveDirectorySecurityGroup
+
+  ClientVPNSecurityGroup:
+    Value: !Ref ClientVPNSecurityGroup
+    Condition: IsClientVpn
 
   LicenseServerSecurityGroup:
     Value: !Ref LicenseServerSecurityGroup
