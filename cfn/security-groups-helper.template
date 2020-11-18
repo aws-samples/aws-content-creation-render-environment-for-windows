@@ -100,14 +100,14 @@ Resources:
         - Key: Name
           Value: license-server-sg
 
-  RepositorySecurityGroup:
+  RenderSchedulerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Security group for Repository instance
+      GroupDescription: Security group for Render Scheduler instance
       VpcId: !Ref VpcID
       Tags:
         - Key: Name
-          Value: deadline-repository-sg
+          Value: render-scheduler-sg
 
   RenderNodeSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -116,7 +116,7 @@ Resources:
       VpcId: !Ref VpcID
       Tags:
         - Key: Name
-          Value: deadline-rendernode-sg
+          Value: render-node-sg
 
   WorkstationSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -143,39 +143,39 @@ Resources:
             CidrIp: !Ref WorkstationAccessCIDR
       Tags:
         - Key: Name
-          Value: deadline-workstation-sg
-          # <-- Grant access for Deadline Repository -->
+          Value: workstation-sg
+          # <-- Grant access for Deadline Render Scheduler -->
 
-  RepositoryToLicenseServerIngress:
+  RenderSchedulerToLicenseServerIngress:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
       GroupId: !Ref LicenseServerSecurityGroup
-      Description: deadline-repository-sg
+      Description: render-scheduler-sg
       IpProtocol: "-1"
-      SourceSecurityGroupId: !Ref RepositorySecurityGroup
+      SourceSecurityGroupId: !Ref RenderSchedulerSecurityGroup
 
-  RepositoryToRenderNodeIngress:
+  RenderSchedulerToRenderNodeIngress:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
       GroupId: !Ref RenderNodeSecurityGroup
-      Description: deadline-repository-sg
+      Description: render-scheduler-sg
       IpProtocol: "-1"
-      SourceSecurityGroupId: !Ref RepositorySecurityGroup
+      SourceSecurityGroupId: !Ref RenderSchedulerSecurityGroup
 
-  RepositoryToWorkstationIngress:
+  RenderSchedulerToWorkstationIngress:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
       GroupId: !Ref WorkstationSecurityGroup
-      Description: deadline-repository-sg
+      Description: render-scheduler-sg
       IpProtocol: "-1"
-      SourceSecurityGroupId: !Ref RepositorySecurityGroup
+      SourceSecurityGroupId: !Ref RenderSchedulerSecurityGroup
       # <-- Grant access for Deadline Render Node -->
 
-  RenderNodeToRepositoryIngress:
+  RenderNodeToRenderSchedulerIngress:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
-      GroupId: !Ref RepositorySecurityGroup
-      Description: deadline-rendernode-sg
+      GroupId: !Ref RenderSchedulerSecurityGroup
+      Description: render-node-sg
       IpProtocol: "-1"
       SourceSecurityGroupId: !Ref RenderNodeSecurityGroup
 
@@ -183,7 +183,7 @@ Resources:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
       GroupId: !Ref WorkstationSecurityGroup
-      Description: deadline-rendernode-sg
+      Description: render-node-sg
       IpProtocol: "-1"
       SourceSecurityGroupId: !Ref RenderNodeSecurityGroup
 
@@ -191,7 +191,7 @@ Resources:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
       GroupId: !Ref LicenseServerSecurityGroup
-      Description: deadline-rendernode-sg
+      Description: render-node-sg
       IpProtocol: "-1"
       SourceSecurityGroupId: !Ref RenderNodeSecurityGroup
       # <-- Grant access for Deadline Workstation -->
@@ -200,15 +200,15 @@ Resources:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
       GroupId: !Ref RenderNodeSecurityGroup
-      Description: deadline-workstation-sg
+      Description: workstation-sg
       IpProtocol: "-1"
       SourceSecurityGroupId: !Ref WorkstationSecurityGroup
 
-  WorkstationToRepositoryIngress:
+  WorkstationToRenderSchedulerIngress:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
-      GroupId: !Ref RepositorySecurityGroup
-      Description: deadline-workstation-sg
+      GroupId: !Ref RenderSchedulerSecurityGroup
+      Description: workstation-sg
       IpProtocol: "-1"
       SourceSecurityGroupId: !Ref WorkstationSecurityGroup
 
@@ -227,8 +227,8 @@ Outputs:
   LicenseServerSecurityGroup:
     Value: !Ref LicenseServerSecurityGroup
 
-  RepositorySecurityGroup:
-    Value: !Ref RepositorySecurityGroup
+  RenderSchedulerSecurityGroup:
+    Value: !Ref RenderSchedulerSecurityGroup
 
   RenderNodeSecurityGroup:
     Value: !Ref RenderNodeSecurityGroup

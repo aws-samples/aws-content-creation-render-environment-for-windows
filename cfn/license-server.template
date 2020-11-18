@@ -39,7 +39,7 @@ Parameters:
   EC2InstanceProfile:
     Type: String
 
-  LicenseServerVersion:
+  DeadlineLicenseServerVersion:
     Type: String
 
   ResourceTags:
@@ -59,7 +59,7 @@ Resources:
       AWS::CloudFormation::Init:
         config:
           sources:
-            C:\data\thinkbox: !Sub https://${ArtefactBucketName}.s3.${AWS::URLSuffix}/ThinkboxLicenseServer-${LicenseServerVersion}-windows-installer.exe.zip
+            C:\data\thinkbox: !Sub https://${ArtefactBucketName}.s3.${AWS::URLSuffix}/ThinkboxLicenseServer-${DeadlineLicenseServerVersion}-windows-installer.exe.zip
           files:
             C:\data\thinkbox\license.lic:
               content: |
@@ -93,7 +93,7 @@ Resources:
               command: powershell.exe -ExecutionPolicy Unrestricted C:\cfn\scripts\install-packages.ps1 -Verbose
               waitAfterCompletion: 0
             05-install-license-server:
-              command: !Sub powershell.exe -Command "Start-Process -FilePath 'C:\data\thinkbox\ThinkboxLicenseServer-${LicenseServerVersion}-windows-installer.exe' -ArgumentList '--mode unattended', '--licenseFile C:\data\thinkbox\license.lic'"
+              command: !Sub powershell.exe -Command "Start-Process -FilePath 'C:\data\thinkbox\ThinkboxLicenseServer-${DeadlineLicenseServerVersion}-windows-installer.exe' -ArgumentList '--mode unattended', '--licenseFile C:\data\thinkbox\license.lic'"
               waitAfterCompletion: 0
           services:
             windows:
@@ -152,4 +152,4 @@ Outputs:
     Value: !GetAtt LicenseServerInstance.PrivateIp
 
   LicenseServerVersion:
-    Value: !Ref LicenseServerVersion
+    Value: !Ref DeadlineLicenseServerVersion
