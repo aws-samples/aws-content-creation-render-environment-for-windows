@@ -153,6 +153,3 @@ Outputs:
 
   LicenseServerVersion:
     Value: !Ref LicenseServerVersion
-
-  ArtefactBucket:
-    Value: !Ref ArtefactBucketName
