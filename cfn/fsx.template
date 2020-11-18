@@ -28,7 +28,7 @@ Parameters:
   ActiveDirectorySecurityGroup:
     Type: AWS::EC2::SecurityGroup::Id
 
-  RepositorySecurityGroup:
+  RenderSchedulerSecurityGroup:
     Type: AWS::EC2::SecurityGroup::Id
 
   RenderNodeSecurityGroup:
@@ -67,7 +67,7 @@ Resources:
       SecurityGroupIds:
         - !Ref FsxSecurityGroup
         - !Ref ActiveDirectorySecurityGroup
-        - !Ref RepositorySecurityGroup
+        - !Ref RenderSchedulerSecurityGroup
         - !Ref RenderNodeSecurityGroup
         - !Ref WorkstationSecurityGroup
       StorageCapacity: !Ref StorageCapacity
