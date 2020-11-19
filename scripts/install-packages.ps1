@@ -19,7 +19,7 @@ try {
     choco install --limit-output -y awscli
 
     Write-Host "Install Chrome"
-    choco install --limit-output --ignore-checksums -y googlechrome
+    choco install --limit-output -y firefox
 
     Write-Host "choco installs complete"
 }
