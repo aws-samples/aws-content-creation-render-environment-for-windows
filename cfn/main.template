@@ -41,16 +41,22 @@ Metadata:
           - FSxStorageCapacity
           - FSxThroughputCapacity
       - Label:
-          default: Workstation configuration
-        Parameters:
-          - WorkstationConnectionManager
-          - WorkstationAccessCIDR
-      - Label:
           default: License server configuration
         Parameters:
           - LicenseServerAmiId
           - LicenseServerInstanceType
-          - LicenseServerVersion
+          - DeadlineLicenseServerVersion
+      - Label:
+          default: Render scheduler configuration
+        Parameters:
+          - RenderSchedulerAmiId
+          - RenderSchedulerInstanceType
+          - DeadlineAppVersion
+      - Label:
+          default: Workstation configuration
+        Parameters:
+          - WorkstationConnectionManager
+          - WorkstationAccessCIDR
     ParameterLabels:
       AvailabilityZones:
         default: Availability Zones
@@ -96,8 +102,14 @@ Metadata:
         default: License server AMI ID
       LicenseServerInstanceType:
         default: License server instance type
-      LicenseServerVersion:
-        default: License server software version
+      DeadlineLicenseServerVersion:
+        default: Deadline License server software version
+      RenderSchedulerAmiId:
+        default: Render scheduler AMI ID
+      RenderSchedulerInstanceType:
+        default: Render scheduler instance type
+      DeadlineAppVersion:
+        default: Deadline application version
 
 Parameters:
   AvailabilityZones:
@@ -260,13 +272,31 @@ Parameters:
     Type: String
     Default: m5.large
 
-  LicenseServerVersion:
-    Description: Version of the License server software.
+  DeadlineLicenseServerVersion:
+    Description: Version of the Deadline License server software.
     Type: String
     AllowedValues:
       - 1.1
       - 11.13.1.2.1
     Default: 1.1
+
+  RenderSchedulerAmiId:
+    Description: Latest Windows AMI Using Systems Manager Parameter Store.
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-windows-latest/Windows_Server-2019-English-Full-Base
+
+  RenderSchedulerInstanceType:
+    Description: The EC2 instance type for the Deadline License server.
+    Type: String
+    Default: m5.2xlarge
+
+  DeadlineAppVersion:
+    Description: Version of the Deadline software.
+    Type: String
+    AllowedValues:
+      - 10.1.11.5
+      - 10.0.29.0
+    Default: 10.1.11.5
 
   Environment:
     Description: The type of environment to tag your infrastructure with. You can specify DEV (development), TEST (test), or PROD (production).
@@ -290,7 +320,7 @@ Parameters:
     ConstraintDescription: S3 bucket name can include numbers, lowercase letters, uppercase letters, periods (.), and hyphens (-). It cannot start or end with a hyphen (-).
 
 Conditions:
-  CreateClientVPN: !Equals [!Ref CreateVPNEndpoint, true]
+  IsClientVPN: !Equals [!Ref CreateVPNEndpoint, true]
 
 Resources:
   IAMStack:
@@ -337,6 +367,7 @@ Resources:
         PrivateSubnet2Cidr: !Ref PrivateSubnet2Cidr
         WorkstationAccessCIDR: !Ref WorkstationAccessCIDR
         WorkstationConnectionManager: !Ref WorkstationConnectionManager
+        CreateVPNEndpoint: !Ref CreateVPNEndpoint
       Tags:
         - Key: Project
           Value: !Ref ResourceTags
@@ -354,13 +385,14 @@ Resources:
         SubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1
         TargetNetworkCidr: !Ref TargetNetworkCidr
         VpcID: !GetAtt VPCStack.Outputs.VpcID
+        ClientVPNSecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.ClientVPNSecurityGroup
         ResourceTags: !Ref ResourceTags
       Tags:
         - Key: Project
           Value: !Ref ResourceTags
         - Key: Environment
           Value: !Ref Environment
-    Condition: CreateClientVPN
+    Condition: IsClientVPN
 
   MicrosoftADStack:
     Type: AWS::CloudFormation::Stack
@@ -394,7 +426,7 @@ Resources:
         PrivateSubnet1: !GetAtt VPCStack.Outputs.PrivateSubnet1
         PrivateSubnet2: !GetAtt VPCStack.Outputs.PrivateSubnet2
         ActiveDirectorySecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.ActiveDirectorySecurityGroup
-        RepositorySecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.RepositorySecurityGroup
+        RenderSchedulerSecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.RenderSchedulerSecurityGroup
         RenderNodeSecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.RenderNodeSecurityGroup
         WorkstationSecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.WorkstationSecurityGroup
         DirectoryId: !GetAtt MicrosoftADStack.Outputs.DirectoryId
@@ -439,7 +471,35 @@ Resources:
         InstanceType: !Ref LicenseServerInstanceType
         InstanceAMI: !Ref LicenseServerAmiId
         EC2InstanceProfile: !GetAtt IAMStack.Outputs.EC2InstanceProfile
-        LicenseServerVersion: !Ref LicenseServerVersion
+        DeadlineLicenseServerVersion: !Ref DeadlineLicenseServerVersion
+        ResourceTags: !Ref ResourceTags
+        ArtefactBucketName: !Ref ArtefactBucketName
+      Tags:
+        - Key: Project
+          Value: !Ref ResourceTags
+        - Key: Environment
+          Value: !Ref Environment
+
+  RenderSchedulerStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: render-scheduler.template
+      Parameters:
+        PrivateSubnet1: !GetAtt VPCStack.Outputs.PrivateSubnet1
+        ActiveDirectorySecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.ActiveDirectorySecurityGroup
+        RenderSchedulerSecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.RenderSchedulerSecurityGroup
+        ActiveDirectoryDocument: !GetAtt IAMStack.Outputs.ActiveDirectoryDocument
+        DirectoryId: !GetAtt MicrosoftADStack.Outputs.DirectoryId
+        ADServer1PrivateIP: !GetAtt MicrosoftADStack.Outputs.ADServer1PrivateIP
+        ADServer2PrivateIP: !GetAtt MicrosoftADStack.Outputs.ADServer2PrivateIP
+        DomainDNSName: !Ref DomainDNSName
+        DomainUser: !GetAtt MicrosoftADStack.Outputs.DomainAdmin
+        DomainAdminPassword: !Ref DomainAdminPassword
+        FSxNetworkMapping: !GetAtt FSxDNSNameStack.Outputs.FSxNetworkMapping
+        InstanceType: !Ref RenderSchedulerInstanceType
+        InstanceAMI: !Ref RenderSchedulerAmiId
+        EC2InstanceProfile: !GetAtt IAMStack.Outputs.EC2InstanceProfile
+        DeadlineAppVersion: !Ref DeadlineAppVersion
         ResourceTags: !Ref ResourceTags
         ArtefactBucketName: !Ref ArtefactBucketName
       Tags:
@@ -449,12 +509,18 @@ Resources:
           Value: !Ref Environment
 
 Outputs:
+  DomainUser:
+    Value: !GetAtt MicrosoftADStack.Outputs.DomainAdmin
+
+  FSxNetworkMapping:
+    Value: !GetAtt FSxDNSNameStack.Outputs.FSxNetworkMapping
+
   ClientVpnEndpointID:
     Value: !GetAtt ClientVPNStack.Outputs.ClientVpnEndpointID
-    Condition: CreateClientVPN
+    Condition: IsClientVPN
 
   LicenseServerIPAddress:
     Value: !GetAtt LicenseServerStack.Outputs.LicenseServerInstancePrivateIp
 
-  DomainUser:
-    Value: !GetAtt MicrosoftADStack.Outputs.DomainAdmin
+  RenderSchedulerIPAddress:
+    Value: !GetAtt RenderSchedulerStack.Outputs.RenderSchedulerInstancePrivateIp

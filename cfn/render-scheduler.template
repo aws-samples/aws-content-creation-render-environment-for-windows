@@ -1,0 +1,171 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Provides configuration for a Render Scheduler instance.
+
+Parameters:
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet::Id
+
+  DirectoryId:
+    Type: String
+
+  DomainDNSName:
+    Type: String
+
+  DomainUser:
+    Type: String
+
+  DomainAdminPassword:
+    Type: String
+    NoEcho: True
+
+  ADServer1PrivateIP:
+    Type: String
+
+  ADServer2PrivateIP:
+    Type: String
+
+  ActiveDirectorySecurityGroup:
+    Type: AWS::EC2::SecurityGroup::Id
+
+  RenderSchedulerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup::Id
+
+  ActiveDirectoryDocument:
+    Type: String
+
+  FSxNetworkMapping:
+    Type: String
+
+  InstanceType:
+    Type: String
+
+  InstanceAMI:
+    Type: AWS::EC2::Image::Id
+
+  EC2InstanceProfile:
+    Type: String
+
+  DeadlineAppVersion:
+    Type: String
+
+  ResourceTags:
+    Type: String
+
+  ArtefactBucketName:
+    Type: String
+
+Resources:
+  RenderSchedulerInstance:
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: PT15M
+    Type: AWS::EC2::Instance
+    Metadata:
+      AWS::CloudFormation::Init:
+        configSets:
+          config:
+            - instance_config
+            - software_install
+            - post_install
+        instance_config:
+          files:
+            C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\automount.bat:
+              content: !Sub |
+                @echo OFF
+                if NOT "%username%" == "Administrator" (
+                  if NOT "${FSxNetworkMapping}" == "NONE" (
+                    net use Z: ${FSxNetworkMapping}
+                  )
+                ) else (
+                  echo Administrator Login - No network mounts
+                )
+            C:\cfn\cfn-hup.conf:
+              content: !Sub |
+                [main]
+                stack=${AWS::StackId}
+                region=${AWS::Region}
+                interval=1
+            C:\cfn\hooks.d\cfn-auto-reloader.conf:
+              content: !Sub |
+                [cfn-auto-reloader-hook]
+                triggers=post.update
+                path=Resources.RenderSchedulerInstance.Metadata.AWS::CloudFormation::Init
+                action=cfn-init.exe -v --stack ${AWS::StackId} --resource RenderSchedulerInstance --configsets config --region ${AWS::Region}
+          commands:
+            01-mount-fsx:
+              command: !Sub "net use Z: ${FSxNetworkMapping} /persistent:yes /u:${DomainUser} ${DomainAdminPassword}"
+              waitAfterCompletion: 0
+          services:
+            windows:
+              cfn-hup:
+                enabled: true
+                ensureRunning: true
+                files:
+                  - c:\\cfn\\cfn-hup.conf
+                  - c:\\cfn\\hooks.d\\cfn-auto-reloader.conf
+                audiosrv:
+                  enabled: true
+                  ensureRunning: true
+                amazon-ssm-agent:
+                  enabled: true
+                  ensureRunning: true
+        software_install:
+          sources:
+            Z:\installers: !Sub https://${ArtefactBucketName}.s3.${AWS::URLSuffix}/Deadline-${DeadlineAppVersion}-windows-installers.zip
+          files:
+            C:\cfn\scripts\install-packages.ps1:
+              source: !Sub https://${ArtefactBucketName}.s3.${AWS::URLSuffix}/scripts/install-packages.ps1
+          commands:
+            01-install-packages:
+              command: powershell.exe -ExecutionPolicy Unrestricted .\install-packages.ps1
+              cwd: C:\cfn\scripts\
+              waitAfterCompletion: 0
+        post_install:
+          sources:
+            Z:\assets: !Sub https://${ArtefactBucketName}.s3.amazonaws.com/BMW27_2.blend.zip
+    Properties:
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: 100
+            VolumeType: gp2
+            Encrypted: true
+            DeleteOnTermination: true
+      IamInstanceProfile: !Ref EC2InstanceProfile
+      ImageId: !Ref InstanceAMI
+      InstanceType: !Ref InstanceType
+      SsmAssociations:
+        - DocumentName: !Ref ActiveDirectoryDocument
+          AssociationParameters:
+            - Key: directoryId
+              Value:
+                - !Ref DirectoryId
+            - Key: directoryName
+              Value:
+                - !Ref DomainDNSName
+            - Key: dnsIpAddresses
+              Value:
+                - !Ref ADServer1PrivateIP
+                - !Ref ADServer2PrivateIP
+      SecurityGroupIds:
+        - !Ref ActiveDirectorySecurityGroup
+        - !Ref RenderSchedulerSecurityGroup
+      SubnetId: !Ref PrivateSubnet1
+      Tags:
+        - Key: Name
+          Value: !Join [/, [!Ref ResourceTags, render-scheduler]]
+      UserData: !Base64
+        Fn::Sub: |
+          <script>
+          cfn-init.exe -v --stack ${AWS::StackName} --resource RenderSchedulerInstance --configsets config --region ${AWS::Region}
+          cfn-signal.exe -e %errorlevel% --stack ${AWS::StackName} --resource RenderSchedulerInstance --region ${AWS::Region}
+          </script>
+
+Outputs:
+  RenderSchedulerInstancePrivateIp:
+    Value: !GetAtt RenderSchedulerInstance.PrivateIp
+
+  DeadlineAppVersion:
+    Value: !Ref DeadlineAppVersion
