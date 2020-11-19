@@ -40,7 +40,7 @@ repos:
       - id: cfn-python-lint
         name: AWS CloudFormation Linter
         files: \.(template)$
-        args: [--ignore-checks=E3002]
+        args: [--ignore-checks=E3002, --ignore-checks=W4002]
 
   # The bug creates circular checks with end-of-file-fixer.
   - repo: https://github.com/aws-cloudformation/rain
