@@ -18,7 +18,7 @@ try {
     Write-Host "Install awscli"
     choco install --limit-output -y awscli
 
-    Write-Host "Install Chrome"
+    Write-Host "Install Firefox"
     choco install --limit-output -y firefox
 
     Write-Host "choco installs complete"
