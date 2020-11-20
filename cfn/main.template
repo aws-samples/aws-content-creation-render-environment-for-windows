@@ -467,6 +467,8 @@ Resources:
         ADServer1PrivateIP: !GetAtt MicrosoftADStack.Outputs.ADServer1PrivateIP
         ADServer2PrivateIP: !GetAtt MicrosoftADStack.Outputs.ADServer2PrivateIP
         DomainDNSName: !Ref DomainDNSName
+        DomainUser: !GetAtt MicrosoftADStack.Outputs.DomainAdmin
+        DomainAdminPassword: !Ref DomainAdminPassword
         FSxNetworkMapping: !GetAtt FSxDNSNameStack.Outputs.FSxNetworkMapping
         InstanceType: !Ref LicenseServerInstanceType
         InstanceAMI: !Ref LicenseServerAmiId

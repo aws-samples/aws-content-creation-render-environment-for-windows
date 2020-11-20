@@ -12,6 +12,13 @@ Parameters:
   DomainDNSName:
     Type: String
 
+  DomainUser:
+    Type: String
+
+  DomainAdminPassword:
+    Type: String
+    NoEcho: True
+
   ADServer1PrivateIP:
     Type: String
 
@@ -57,15 +64,12 @@ Resources:
     Type: AWS::EC2::Instance
     Metadata:
       AWS::CloudFormation::Init:
-        config:
-          sources:
-            C:\data\thinkbox: !Sub https://${ArtefactBucketName}.s3.${AWS::URLSuffix}/ThinkboxLicenseServer-${DeadlineLicenseServerVersion}-windows-installer.exe.zip
+        configSets:
+          config:
+            - instance_config
+            - software_install
+        instance_config:
           files:
-            C:\data\thinkbox\license.lic:
-              content: |
-                <License configuration>
-            C:\cfn\scripts\install-packages.ps1:
-              source: !Sub https://${ArtefactBucketName}.s3.${AWS::URLSuffix}/scripts/install-packages.ps1
             C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\automount.bat:
               content: !Sub |
                 @echo OFF
@@ -87,13 +91,11 @@ Resources:
                 [cfn-auto-reloader-hook]
                 triggers=post.update
                 path=Resources.LicenseServerInstance.Metadata.AWS::CloudFormation::Init
-                action=cfn-init.exe -v --stack ${AWS::StackId} --resource LicenseServerInstance --region ${AWS::Region}
+                action=cfn-init.exe -v --stack ${AWS::StackId} --resource LicenseServerInstance --configsets config --region ${AWS::Region}
           commands:
-            01-install-packages:
-              command: powershell.exe -ExecutionPolicy Unrestricted C:\cfn\scripts\install-packages.ps1 -Verbose
-              waitAfterCompletion: 0
-            05-install-license-server:
-              command: !Sub powershell.exe -Command "Start-Process -FilePath 'C:\data\thinkbox\ThinkboxLicenseServer-${DeadlineLicenseServerVersion}-windows-installer.exe' -ArgumentList '--mode unattended', '--licenseFile C:\data\thinkbox\license.lic'"
+            01-mount-fsx:
+              command: !Sub >-
+                net use Z: ${FSxNetworkMapping} /persistent:yes /u:${DomainUser} ${DomainAdminPassword}
               waitAfterCompletion: 0
           services:
             windows:
@@ -109,6 +111,24 @@ Resources:
                 amazon-ssm-agent:
                   enabled: true
                   ensureRunning: true
+        software_install:
+          sources:
+            C:\cfn\thinkbox: !Sub https://${ArtefactBucketName}.s3.${AWS::URLSuffix}/ThinkboxLicenseServer-${DeadlineLicenseServerVersion}-windows-installer.exe.zip
+          files:
+            C:\cfn\scripts\install-packages.ps1:
+              source: !Sub https://${ArtefactBucketName}.s3.${AWS::URLSuffix}/scripts/install-packages.ps1
+            C:\cfn\thinkbox\license.lic:
+              content: |
+                # License configuration
+          commands:
+            01-install-packages:
+              command: powershell.exe -ExecutionPolicy Unrestricted .\install-packages.ps1
+              cwd: C:\cfn\scripts\
+              waitAfterCompletion: 0
+            05-install-license-server:
+              command: !Sub >-
+                powershell.exe -Command "Start-Process -FilePath 'C:\cfn\thinkbox\ThinkboxLicenseServer-${DeadlineLicenseServerVersion}-windows-installer.exe' -ArgumentList '--mode unattended', '--licenseFile C:\cfn\thinkbox\license.lic'"
+              waitAfterCompletion: 0
     Properties:
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
@@ -143,7 +163,7 @@ Resources:
       UserData: !Base64
         Fn::Sub: |
           <script>
-          cfn-init.exe -v --stack ${AWS::StackName} --resource LicenseServerInstance --region ${AWS::Region}
+          cfn-init.exe -v --stack ${AWS::StackName} --resource LicenseServerInstance --configsets config --region ${AWS::Region}
           cfn-signal.exe -e %errorlevel% --stack ${AWS::StackName} --resource LicenseServerInstance --region ${AWS::Region}
           </script>
 
