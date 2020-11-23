@@ -60,7 +60,7 @@ Resources:
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: PT15M
+        Timeout: PT25M
     Type: AWS::EC2::Instance
     Metadata:
       AWS::CloudFormation::Init:
@@ -119,18 +119,19 @@ Resources:
             C:\cfn\scripts\install-packages.ps1:
               source: !Sub https://${ArtefactBucketName}.s3.${AWS::URLSuffix}/scripts/install-packages.ps1
           commands:
+            01-install-render-scheduler:
+              command: !Sub >-
+                powershell.exe -Command Start-Process -FilePath 'C:\cfn\thinkbox\DeadlineRepository-${DeadlineAppVersion}-windows-installer.exe' -ArgumentList '--mode unattended', '--prefix ${FSxNetworkMapping}\DeadlineRepository10', '--installmongodb true', '--mongodir C:\thinkbox\DeadlineDatabase10', '--requireSSL false'
+              ignoreErrors: true
+              waitAfterCompletion: 600
+        post_install:
+          sources:
+            Z:\assets: !Sub https://${ArtefactBucketName}.s3.amazonaws.com/BMW27_2.blend.zip
+          commands:
             01-install-packages:
               command: powershell.exe -ExecutionPolicy Unrestricted .\install-packages.ps1
               cwd: C:\cfn\scripts\
               waitAfterCompletion: 0
-            05-install-render-scheduler:
-              command: !Sub >-
-                powershell.exe -Command Start-Process -FilePath 'C:\cfn\thinkbox\DeadlineRepository-${DeadlineAppVersion}-windows-installer.exe' -ArgumentList '--mode unattended', '--prefix ${FSxNetworkMapping}\DeadlineRepository10', '--installmongodb true', '--mongodir C:\DeadlineDatabase10', '--requireSSL false'
-              waitAfterCompletion: 0
-              ignoreErrors: true
-        post_install:
-          sources:
-            Z:\assets: !Sub https://${ArtefactBucketName}.s3.amazonaws.com/BMW27_2.blend.zip
     Properties:
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
