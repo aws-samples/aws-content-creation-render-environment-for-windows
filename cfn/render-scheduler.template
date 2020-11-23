@@ -95,7 +95,8 @@ Resources:
                 action=cfn-init.exe -v --stack ${AWS::StackId} --resource RenderSchedulerInstance --configsets config --region ${AWS::Region}
           commands:
             01-mount-fsx:
-              command: !Sub "net use Z: ${FSxNetworkMapping} /persistent:yes /u:${DomainUser} ${DomainAdminPassword}"
+              command: !Sub >-
+                net use Z: ${FSxNetworkMapping} /persistent:yes /u:${DomainUser} ${DomainAdminPassword}
               waitAfterCompletion: 0
           services:
             windows:
@@ -113,7 +114,7 @@ Resources:
                   ensureRunning: true
         software_install:
           sources:
-            Z:\installers: !Sub https://${ArtefactBucketName}.s3.${AWS::URLSuffix}/Deadline-${DeadlineAppVersion}-windows-installers.zip
+            C:\cfn\thinkbox: !Sub https://${ArtefactBucketName}.s3.${AWS::URLSuffix}/Deadline-${DeadlineAppVersion}-windows-installers.zip
           files:
             C:\cfn\scripts\install-packages.ps1:
               source: !Sub https://${ArtefactBucketName}.s3.${AWS::URLSuffix}/scripts/install-packages.ps1
@@ -122,6 +123,11 @@ Resources:
               command: powershell.exe -ExecutionPolicy Unrestricted .\install-packages.ps1
               cwd: C:\cfn\scripts\
               waitAfterCompletion: 0
+            05-install-render-scheduler:
+              command: !Sub >-
+                powershell.exe -Command Start-Process -FilePath 'C:\cfn\thinkbox\DeadlineRepository-${DeadlineAppVersion}-windows-installer.exe' -ArgumentList '--mode unattended', '--prefix ${FSxNetworkMapping}\DeadlineRepository10', '--installmongodb true', '--mongodir C:\DeadlineDatabase10', '--requireSSL false'
+              waitAfterCompletion: 0
+              ignoreErrors: true
         post_install:
           sources:
             Z:\assets: !Sub https://${ArtefactBucketName}.s3.amazonaws.com/BMW27_2.blend.zip
