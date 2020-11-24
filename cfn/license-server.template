@@ -68,6 +68,7 @@ Resources:
           config:
             - instance_config
             - software_install
+            - post_install
         instance_config:
           files:
             C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\automount.bat:
@@ -115,19 +116,23 @@ Resources:
           sources:
             C:\cfn\thinkbox: !Sub https://${ArtefactBucketName}.s3.${AWS::URLSuffix}/ThinkboxLicenseServer-${DeadlineLicenseServerVersion}-windows-installer.exe.zip
           files:
-            C:\cfn\scripts\install-packages.ps1:
-              source: !Sub https://${ArtefactBucketName}.s3.${AWS::URLSuffix}/scripts/install-packages.ps1
             C:\cfn\thinkbox\license.lic:
               content: |
                 # License configuration
           commands:
+            01-install-license-server:
+              command: !Sub >-
+                powershell.exe -Command Start-Process -FilePath 'C:\cfn\thinkbox\ThinkboxLicenseServer-${DeadlineLicenseServerVersion}-windows-installer.exe' -ArgumentList '--mode unattended', '--licenseFile C:\cfn\thinkbox\license.lic'
+              ignoreErrors: true
+              waitAfterCompletion: 0
+        post_install:
+          files:
+            C:\cfn\scripts\install-packages.ps1:
+              source: !Sub https://${ArtefactBucketName}.s3.${AWS::URLSuffix}/scripts/install-packages.ps1
+          commands:
             01-install-packages:
               command: powershell.exe -ExecutionPolicy Unrestricted .\install-packages.ps1
               cwd: C:\cfn\scripts\
-              waitAfterCompletion: 0
-            05-install-license-server:
-              command: !Sub >-
-                powershell.exe -Command Start-Process -FilePath 'C:\cfn\thinkbox\ThinkboxLicenseServer-${DeadlineLicenseServerVersion}-windows-installer.exe' -ArgumentList '--mode unattended', '--licenseFile C:\cfn\thinkbox\license.lic'
               waitAfterCompletion: 0
     Properties:
       BlockDeviceMappings:

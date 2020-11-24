@@ -41,13 +41,13 @@ Metadata:
           - FSxStorageCapacity
           - FSxThroughputCapacity
       - Label:
-          default: License server configuration
+          default: License Server configuration
         Parameters:
           - LicenseServerAmiId
           - LicenseServerInstanceType
           - DeadlineLicenseServerVersion
       - Label:
-          default: Render scheduler configuration
+          default: Render Scheduler configuration
         Parameters:
           - RenderSchedulerAmiId
           - RenderSchedulerInstanceType
@@ -55,6 +55,7 @@ Metadata:
       - Label:
           default: Workstation configuration
         Parameters:
+          - WorkstationInstanceType
           - WorkstationConnectionManager
           - WorkstationAccessCIDR
     ParameterLabels:
@@ -94,10 +95,6 @@ Metadata:
         default: File system storage capacity
       FSxThroughputCapacity:
         default: File systems throughput capacity
-      WorkstationConnectionManager:
-        deafult: Workstation connection manager
-      WorkstationAccessCIDR:
-        default: Workstation access CIDR
       LicenseServerAmiId:
         default: License server AMI ID
       LicenseServerInstanceType:
@@ -110,6 +107,12 @@ Metadata:
         default: Render scheduler instance type
       DeadlineAppVersion:
         default: Deadline application version
+      WorkstationInstanceType:
+        default: Workstation instance type
+      WorkstationConnectionManager:
+        deafult: Workstation connection manager
+      WorkstationAccessCIDR:
+        default: Workstation access CIDR
 
 Parameters:
   AvailabilityZones:
@@ -247,21 +250,6 @@ Parameters:
       - 2048
     Default: 16
 
-  WorkstationConnectionManager:
-    Description: Specify whether you want to run Teradici PCoIP or NiceDcv server to connect to the workstation.
-    Type: String
-    AllowedValues:
-      - teradici
-      - nicedcv
-    Default: teradici
-
-  WorkstationAccessCIDR:
-    Description: CIDR block of an on-premise IP address. Input your network's current public or private IP depending if the Workstation is being placed in a public or private subnet.
-    Type: String
-    Default: 0.0.0.0/0
-    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
-    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/0-32
-
   LicenseServerAmiId:
     Description: Latest Windows AMI Using Systems Manager Parameter Store.
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
@@ -298,6 +286,33 @@ Parameters:
       - 10.0.29.0
     Default: 10.1.11.5
 
+  WorkstationInstanceType:
+    Description: Artist workstation instance type.
+    Type: String
+    AllowedValues:
+      - g4dn.xlarge
+      - g4dn.2xlarge
+      - g4dn.4xlarge
+      - g4dn.8xlarge
+      - g4dn.12xlarge
+      - g4dn.16xlarge
+    Default: g4dn.xlarge
+
+  WorkstationConnectionManager:
+    Description: Specify whether you want to run Teradici PCoIP or NiceDcv server to connect to the workstation.
+    Type: String
+    AllowedValues:
+      - teradici
+      - nicedcv
+    Default: teradici
+
+  WorkstationAccessCIDR:
+    Description: CIDR block of an on-premise IP address. Input your network's IP address if the Workstation is being placed in a public subnet.
+    Type: String
+    Default: 0.0.0.0/0
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/0-32
+
   Environment:
     Description: The type of environment to tag your infrastructure with. You can specify DEV (development), TEST (test), or PROD (production).
     Type: String
@@ -319,8 +334,55 @@ Parameters:
     AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-.]*[0-9a-zA-Z])*$
     ConstraintDescription: S3 bucket name can include numbers, lowercase letters, uppercase letters, periods (.), and hyphens (-). It cannot start or end with a hyphen (-).
 
+Mappings:
+  AMIRegionMap:
+    ap-south-1:
+      NiceDcv: ami-06ed103fe0f14e426
+      Teradici: ami-08c489cfbc9e81e47
+    eu-west-3:
+      NiceDcv: ami-008ae9166dc88f821
+      Teradici: ami-01ca7247fb4f66341
+    eu-west-2:
+      NiceDcv: ami-0c8ce796f94172fec
+      Teradici: ami-00947fe4e05bb1113
+    eu-west-1:
+      NiceDcv: ami-08f3a5e58e7c43b91
+      Teradici: ami-0a9e467504b401890
+    ap-northeast-2:
+      NiceDcv: ami-02c8a5167b054e42c
+      Teradici: ami-099a8cb3827fa8ad8
+    ap-northeast-1:
+      NiceDcv: ami-06d567d20324a46e9
+      Teradici: ami-074104bce8c407fa9
+    sa-east-1:
+      NiceDcv: ami-05bdbcf858ff0ce9e
+      Teradici: ami-0cced5c8abcf42e0a
+    ap-southeast-1:
+      NiceDcv: ami-030c405f0aec88b8b
+      Teradici: ami-05714b3e69bc9e761
+    ap-southeast-2:
+      NiceDcv: ami-0d12002cbe2583501
+      Teradici: ami-0f75336b339f065a4
+    eu-central-1:
+      NiceDcv: ami-0a9cd36af1a427c07
+      Teradici: ami-0fa5140abf166471b
+    us-east-1:
+      NiceDcv: ami-0a4b8170ad36fb0b3
+      Teradici: ami-00a38f9217132f701
+    us-east-2:
+      NiceDcv: ami-08831b9280775f24a
+      Teradici: ami-09ce9ff218be9a23d
+    us-west-1:
+      NiceDcv: ami-01e2cbe111029a195
+      Teradici: ami-0bda9aeaba4bad844
+    us-west-2:
+      NiceDcv: ami-0e77f34287b171090
+      Teradici: ami-0ccbb970e1176a12c
+
 Conditions:
   IsClientVPN: !Equals [!Ref CreateVPNEndpoint, true]
+
+  IsTeradici: !Equals [!Ref WorkstationConnectionManager, teradici]
 
 Resources:
   IAMStack:
@@ -510,6 +572,42 @@ Resources:
         - Key: Environment
           Value: !Ref Environment
 
+  WorkstationStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: workstation.template
+      Parameters:
+        SubnetID: !If
+          - IsClientVPN
+          - !GetAtt VPCStack.Outputs.PrivateSubnet1
+          - !GetAtt VPCStack.Outputs.PublicSubnet1
+        ActiveDirectorySecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.ActiveDirectorySecurityGroup
+        WorkstationSecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.WorkstationSecurityGroup
+        ActiveDirectoryDocument: !GetAtt IAMStack.Outputs.ActiveDirectoryDocument
+        DirectoryId: !GetAtt MicrosoftADStack.Outputs.DirectoryId
+        ADServer1PrivateIP: !GetAtt MicrosoftADStack.Outputs.ADServer1PrivateIP
+        ADServer2PrivateIP: !GetAtt MicrosoftADStack.Outputs.ADServer2PrivateIP
+        DomainDNSName: !Ref DomainDNSName
+        DomainUser: !GetAtt MicrosoftADStack.Outputs.DomainAdmin
+        DomainAdminPassword: !Ref DomainAdminPassword
+        FSxNetworkMapping: !GetAtt FSxDNSNameStack.Outputs.FSxNetworkMapping
+        InstanceType: !Ref WorkstationInstanceType
+        InstanceAMI: !If
+          - IsTeradici
+          - !FindInMap [AMIRegionMap, !Ref 'AWS::Region', Teradici]
+          - !FindInMap [AMIRegionMap, !Ref 'AWS::Region', NiceDcv]
+        CreateVPNEndpoint: !Ref CreateVPNEndpoint
+        EC2InstanceProfile: !GetAtt IAMStack.Outputs.WorkstationInstanceProfile
+        DeadlineAppVersion: !Ref DeadlineAppVersion
+        LicenseServerInstancePrivateIp: !GetAtt LicenseServerStack.Outputs.LicenseServerInstancePrivateIp
+        ResourceTags: !Ref ResourceTags
+        ArtefactBucketName: !Ref ArtefactBucketName
+      Tags:
+        - Key: Project
+          Value: !Ref ResourceTags
+        - Key: Environment
+          Value: !Ref Environment
+
 Outputs:
   DomainUser:
     Value: !GetAtt MicrosoftADStack.Outputs.DomainAdmin
@@ -526,3 +624,6 @@ Outputs:
 
   RenderSchedulerIPAddress:
     Value: !GetAtt RenderSchedulerStack.Outputs.RenderSchedulerInstancePrivateIp
+
+  WorkstationIPAddress:
+    Value: !GetAtt WorkstationStack.Outputs.WorkstationIP

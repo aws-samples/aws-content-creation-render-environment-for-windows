@@ -1,10 +1,13 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
-Description: Provides configuration for a Render Scheduler instance.
+Description: Provides configuration for a Workstation instance.
 
 Parameters:
-  PrivateSubnet1:
+  SubnetID:
     Type: AWS::EC2::Subnet::Id
+
+  CreateVPNEndpoint:
+    Type: String
 
   DirectoryId:
     Type: String
@@ -28,13 +31,16 @@ Parameters:
   ActiveDirectorySecurityGroup:
     Type: AWS::EC2::SecurityGroup::Id
 
-  RenderSchedulerSecurityGroup:
+  WorkstationSecurityGroup:
     Type: AWS::EC2::SecurityGroup::Id
 
   ActiveDirectoryDocument:
     Type: String
 
   FSxNetworkMapping:
+    Type: String
+
+  LicenseServerInstancePrivateIp:
     Type: String
 
   InstanceType:
@@ -55,8 +61,11 @@ Parameters:
   ArtefactBucketName:
     Type: String
 
+Conditions:
+  IsClientVpn: !Equals [!Ref CreateVPNEndpoint, true]
+
 Resources:
-  RenderSchedulerInstance:
+  WorkstationInstance:
     CreationPolicy:
       ResourceSignal:
         Count: 1
@@ -91,8 +100,8 @@ Resources:
               content: !Sub |
                 [cfn-auto-reloader-hook]
                 triggers=post.update
-                path=Resources.RenderSchedulerInstance.Metadata.AWS::CloudFormation::Init
-                action=cfn-init.exe -v --stack ${AWS::StackId} --resource RenderSchedulerInstance --configsets config --region ${AWS::Region}
+                path=Resources.WorkstationInstance.Metadata.AWS::CloudFormation::Init
+                action=cfn-init.exe -v --stack ${AWS::StackId} --resource WorkstationInstance --configsets config --region ${AWS::Region}
           commands:
             01-mount-fsx:
               command: !Sub >-
@@ -116,21 +125,26 @@ Resources:
           sources:
             C:\cfn\thinkbox: !Sub https://${ArtefactBucketName}.s3.${AWS::URLSuffix}/Deadline-${DeadlineAppVersion}-windows-installers.zip
           commands:
-            01-install-render-scheduler:
+            01-install-client:
               command: !Sub >-
-                powershell.exe -Command Start-Process -FilePath 'C:\cfn\thinkbox\DeadlineRepository-${DeadlineAppVersion}-windows-installer.exe' -ArgumentList '--mode unattended', '--prefix ${FSxNetworkMapping}\DeadlineRepository10', '--installmongodb true', '--mongodir C:\thinkbox\DeadlineDatabase10', '--requireSSL false'
+                powershell.exe -Command Start-Process -FilePath 'C:\cfn\thinkbox\DeadlineClient-${DeadlineAppVersion}-windows-installer.exe' -ArgumentList '--mode unattended', '--prefix C:\thinkbox\Deadline10', '--connectiontype Repository', '--repositorydir ${FSxNetworkMapping}\DeadlineRepository10', '--licensemode Standard', '--licenseserver @${LicenseServerInstancePrivateIp}', '--launcherstartup true', '--slavestartup false'
               ignoreErrors: true
-              waitAfterCompletion: 600
+              waitAfterCompletion: 360
         post_install:
+          sources:
+            Z:\assets: !Sub https://${ArtefactBucketName}.s3.amazonaws.com/BMW27_2.blend.zip
           files:
             C:\cfn\scripts\install-packages.ps1:
               source: !Sub https://${ArtefactBucketName}.s3.${AWS::URLSuffix}/scripts/install-packages.ps1
-          sources:
-            Z:\assets: !Sub https://${ArtefactBucketName}.s3.amazonaws.com/BMW27_2.blend.zip
           commands:
             01-install-packages:
               command: powershell.exe -ExecutionPolicy Unrestricted .\install-packages.ps1
               cwd: C:\cfn\scripts\
+              ignoreErrors: true
+              waitAfterCompletion: 0
+            02-install blender:
+              command: powershell.exe -Command choco install --limit-output -y blender
+              ignoreErrors: true
               waitAfterCompletion: 0
     Properties:
       BlockDeviceMappings:
@@ -158,21 +172,21 @@ Resources:
                 - !Ref ADServer2PrivateIP
       SecurityGroupIds:
         - !Ref ActiveDirectorySecurityGroup
-        - !Ref RenderSchedulerSecurityGroup
-      SubnetId: !Ref PrivateSubnet1
+        - !Ref WorkstationSecurityGroup
+      SubnetId: !Ref SubnetID
       Tags:
         - Key: Name
-          Value: !Join [/, [!Ref ResourceTags, render-scheduler]]
+          Value: !Join [/, [!Ref ResourceTags, workstation]]
       UserData: !Base64
         Fn::Sub: |
           <script>
-          cfn-init.exe -v --stack ${AWS::StackName} --resource RenderSchedulerInstance --configsets config --region ${AWS::Region}
-          cfn-signal.exe -e %errorlevel% --stack ${AWS::StackName} --resource RenderSchedulerInstance --region ${AWS::Region}
+          cfn-init.exe -v --stack ${AWS::StackName} --resource WorkstationInstance --configsets config --region ${AWS::Region}
+          cfn-signal.exe -e %errorlevel% --stack ${AWS::StackName} --resource WorkstationInstance --region ${AWS::Region}
           </script>
 
 Outputs:
-  RenderSchedulerInstancePrivateIp:
-    Value: !GetAtt RenderSchedulerInstance.PrivateIp
+  WorkstationIP:
+    Value: !If [IsClientVpn, !GetAtt WorkstationInstance.PrivateIp, !GetAtt WorkstationInstance.PublicIp]
 
   DeadlineAppVersion:
     Value: !Ref DeadlineAppVersion

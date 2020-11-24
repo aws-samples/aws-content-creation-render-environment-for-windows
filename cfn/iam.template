@@ -35,9 +35,6 @@ Resources:
               directoryName: '{{ directoryName }}'
               dnsIpAddresses: '{{ dnsIpAddresses }}'
 
-  # --> SSM document joins instances to a directory in AWS Directory Service <--
-
-
   #-- The managed policy for Amazon EC2 Role to enable AWS Systems Manager service core functionality. --#
 
   EC2SessionManagerRole:
@@ -80,6 +77,26 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
         - arn:aws:iam::aws:policy/AmazonSSMDirectoryServiceAccess
+
+  #-- EC2 windows Nvidia drivers --#
+
+  NvidiaDriversPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: EC2WindowsNvidiaDrivers
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - s3:ListBucket
+            Resource: arn:aws:s3:::ec2-windows-nvidia-drivers
+          - Effect: Allow
+            Action:
+              - s3:GetObject
+            Resource: arn:aws:s3:::ec2-windows-nvidia-drivers/*
+      Roles:
+        - !Ref WorkstationSessionManagerRole
 
   #-- Amazon EC2 instance periodically connects to an Amazon S3 bucket to determine whether a valid license is available. --#
 

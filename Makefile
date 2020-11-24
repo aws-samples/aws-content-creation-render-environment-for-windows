@@ -23,7 +23,7 @@ init: venv
 	venv/bin/pre-commit install
 	make build
 
-deploy: build
+deploy:
 	@printf "\n--> Packaging and uploading templates to the %s S3 bucket ...\n" $(BUCKET_NAME)
 	@aws cloudformation package \
 	  --template-file ./cfn/main.template \
