@@ -143,7 +143,7 @@ Resources:
               ignoreErrors: true
               waitAfterCompletion: 0
             02-install blender:
-              command: powershell.exe -Command choco install --limit-output -y blender
+              command: choco install --limit-output -y blender
               ignoreErrors: true
               waitAfterCompletion: 0
     Properties:
