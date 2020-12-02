@@ -34,7 +34,7 @@ Parameters:
   ActiveDirectoryDocument:
     Type: String
 
-  FSxNetworkMapping:
+  FSxDNSName:
     Type: String
 
   InstanceType:
@@ -75,8 +75,8 @@ Resources:
               content: !Sub |
                 @echo OFF
                 if NOT "%username%" == "Administrator" (
-                  if NOT "${FSxNetworkMapping}" == "NONE" (
-                    net use Z: ${FSxNetworkMapping}
+                  if NOT "\\${FSxDNSName}\share" == "NONE" (
+                    net use Z: \\${FSxDNSName}\share
                   )
                 ) else (
                   echo Administrator Login - No network mounts
@@ -96,7 +96,7 @@ Resources:
           commands:
             01-mount-fsx:
               command: !Sub >-
-                net use Z: ${FSxNetworkMapping} /persistent:yes /u:${DomainUser} ${DomainAdminPassword}
+                net use Z: \\${FSxDNSName}\share /persistent:yes /u:${DomainUser} ${DomainAdminPassword}
               waitAfterCompletion: 0
           services:
             windows:
@@ -118,7 +118,7 @@ Resources:
           commands:
             01-install-render-scheduler:
               command: !Sub >-
-                powershell.exe -Command Start-Process -FilePath 'C:\cfn\thinkbox\DeadlineRepository-${DeadlineAppVersion}-windows-installer.exe' -ArgumentList '--mode unattended', '--prefix ${FSxNetworkMapping}\DeadlineRepository10', '--installmongodb true', '--mongodir C:\thinkbox\DeadlineDatabase10', '--requireSSL false'
+                powershell.exe -Command Start-Process -FilePath 'C:\cfn\thinkbox\DeadlineRepository-${DeadlineAppVersion}-windows-installer.exe' -ArgumentList '--mode unattended', '--prefix \\${FSxDNSName}\share\DeadlineRepository10', '--installmongodb true', '--mongodir C:\thinkbox\DeadlineDatabase10', '--requireSSL false'
               ignoreErrors: true
               waitAfterCompletion: 600
         post_install:
