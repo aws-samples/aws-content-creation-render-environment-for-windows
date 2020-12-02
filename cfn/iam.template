@@ -31,14 +31,9 @@ Resources:
         runtimeConfig:
           aws:domainJoin:
             properties:
-              directoryId: '{{ directoryId}}'
+              directoryId: '{{ directoryId }}'
               directoryName: '{{ directoryName }}'
               dnsIpAddresses: '{{ dnsIpAddresses }}'
-
-  # --> SSM document joins instances to a directory in AWS Directory Service <--
-
-
-  #-- The managed policy for Amazon EC2 Role to enable AWS Systems Manager service core functionality. --#
 
   EC2SessionManagerRole:
     Type: AWS::IAM::Role
@@ -55,6 +50,8 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
         - arn:aws:iam::aws:policy/AmazonSSMDirectoryServiceAccess
+
+  #-- The managed policy for Amazon EC2 Role to enable AWS Systems Manager service core functionality. --#
 
   EC2InstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -127,6 +124,9 @@ Outputs:
 
   EC2InstanceProfile:
     Value: !Ref EC2InstanceProfile
+
+  EC2Role:
+    Value: !Ref EC2SessionManagerRole
 
   WorkstationInstanceProfile:
     Value: !Ref WorkstationInstanceProfile
