@@ -605,6 +605,8 @@ Resources:
 
   WorkstationStack:
     Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - RenderSchedulerStack
     Properties:
       TemplateURL: workstation.template
       Parameters:
@@ -641,6 +643,8 @@ Resources:
 
   RenderNodeStack:
     Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - RenderSchedulerStack
     Properties:
       TemplateURL: render-node.template
       Parameters:
