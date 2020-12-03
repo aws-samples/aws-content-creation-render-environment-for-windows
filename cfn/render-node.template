@@ -213,8 +213,8 @@ Resources:
     DependsOn: RenderNodeSpotFleet
     Properties:
       Handle: !Ref RenderNodeWaitConditionHandle
-      Timeout: "900"
-      Count: 1
+      Timeout: "1800"
+      Count: !Ref RenderNodeTargetCapacity
 
   RenderNodeSpotFleet:
     Type: AWS::EC2::SpotFleet
