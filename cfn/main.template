@@ -3,7 +3,7 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: AWS Content Creation Render Environment for Windows (uksb-1rab36c41).
 
 Metadata:
-  Version: 0.0.1
+  Version: 0.0.2
 
   AWS::CloudFormation::Interface:
     ParameterGroups:
@@ -148,7 +148,7 @@ Parameters:
   PublicSubnet2Cidr:
     Description: The CIDR block for the Public Subnet located in Availability Zone 2 of the VPC.
     Type: String
-    Default: 10.0.1.0/24
+    Default: 10.0.2.0/24
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
 
