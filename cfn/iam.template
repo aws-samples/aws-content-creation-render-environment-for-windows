@@ -1,0 +1,135 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Provides the IAM policies and access configuration for the studio.
+
+Parameters:
+  WorkstationConnectionManager:
+    Type: String
+
+Conditions:
+  IsNiceDcv: !Equals [!Ref WorkstationConnectionManager, nicedcv]
+
+Resources:
+  ActiveDirectoryDocument:
+    Type: AWS::SSM::Document
+    Properties:
+      Content:
+        schemaVersion: "1.2"
+        description: Join instances to an AWS Directory Service domain.
+        parameters:
+          directoryId:
+            type: String
+            description: (Required) The ID of the AWS Directory Service directory.
+          directoryName:
+            type: String
+            description: (Required) The name of the directory. For example, test.example.com
+          dnsIpAddresses:
+            type: StringList
+            default: []
+            description: (Optional) The IP addresses of the DNS servers in the directory. Required when DHCP is not configured. For more information, see https://docs.aws.amazon.com/directoryservice/latest/admin-guide/simple_ad_dns.html
+            allowedPattern: ((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)
+        runtimeConfig:
+          aws:domainJoin:
+            properties:
+              directoryId: '{{ directoryId }}'
+              directoryName: '{{ directoryName }}'
+              dnsIpAddresses: '{{ dnsIpAddresses }}'
+
+  EC2SessionManagerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - arn:aws:iam::aws:policy/AmazonSSMDirectoryServiceAccess
+
+  #-- The managed policy for Amazon EC2 Role to enable AWS Systems Manager service core functionality. --#
+
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref EC2SessionManagerRole
+
+  #-- The managed policy for Amazon EC2 Role to enable AWS Systems Manager service core functionality. --#
+
+  WorkstationSessionManagerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - arn:aws:iam::aws:policy/AmazonSSMDirectoryServiceAccess
+
+  #-- Amazon EC2 instance periodically connects to an Amazon S3 bucket to determine whether a valid license is available. --#
+
+  NiceDCVLicensePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: DcvInstallAccess
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - s3:GetObject
+            Resource: !Sub 'arn:aws:s3:::dcv-license.${AWS::Region}/*'
+      Roles:
+        - !Ref WorkstationSessionManagerRole
+    Condition: IsNiceDcv
+
+  WorkstationInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref WorkstationSessionManagerRole
+
+  #-- Allows EC2 Spot Fleet to request, terminate and tag Spot Instances on your behalf. --#
+
+  SpotFleetRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - spotfleet.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2SpotFleetTaggingRole
+
+Outputs:
+  ActiveDirectoryDocument:
+    Value: !Ref ActiveDirectoryDocument
+
+  EC2InstanceProfile:
+    Value: !Ref EC2InstanceProfile
+
+  EC2Role:
+    Value: !Ref EC2SessionManagerRole
+
+  WorkstationInstanceProfile:
+    Value: !Ref WorkstationInstanceProfile
+
+  SpotFleetARN:
+    Value: !GetAtt SpotFleetRole.Arn

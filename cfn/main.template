@@ -1,0 +1,687 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: AWS Content Creation Render Environment for Windows (uksb-1rab36c41).
+
+Metadata:
+  Version: 0.0.1
+
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Region configuration
+        Parameters:
+          - AvailabilityZones
+      - Label:
+          default: VPC network configuration
+        Parameters:
+          - VPCCidr
+          - PublicSubnet1Cidr
+          - PublicSubnet2Cidr
+          - PrivateSubnet1Cidr
+          - PrivateSubnet2Cidr
+      - Label:
+          default: Client VPN configuration
+        Parameters:
+          - CreateVPNEndpoint
+          - ClientCidrBlock
+          - ServerCertificateArn
+          - ClientCertificateArn
+          - TargetNetworkCidr
+      - Label:
+          default: Microsoft AD configuration
+        Parameters:
+          - Edition
+          - DomainDNSName
+          - DomainNetBIOSName
+          - DomainAdminPassword
+      - Label:
+          default: Amazon FSx for Windows configuration
+        Parameters:
+          - FSxDeploymentType
+          - FSxStorageCapacity
+          - FSxThroughputCapacity
+      - Label:
+          default: License Server configuration
+        Parameters:
+          - LicenseServerAmiId
+          - LicenseServerInstanceType
+          - DeadlineLicenseServerVersion
+      - Label:
+          default: Render Scheduler configuration
+        Parameters:
+          - RenderSchedulerAmiId
+          - RenderSchedulerInstanceType
+          - DeadlineAppVersion
+      - Label:
+          default: Workstation configuration
+        Parameters:
+          - WorkstationInstanceType
+          - WorkstationConnectionManager
+          - WorkstationAccessCIDR
+      - Label:
+          default: Render node configuration
+        Parameters:
+          - RenderNodeAmiId
+          - RenderNodeInstanceType
+          - RenderNodeTargetCapacity
+    ParameterLabels:
+      AvailabilityZones:
+        default: Availability Zones
+      VPCCidr:
+        default: VPC CIDR
+      PublicSubnet1Cidr:
+        default: Public Subnet 1 CIDR
+      PublicSubnet2Cidr:
+        default: Public Subnet 2 CIDR
+      PrivateSubnet1Cidr:
+        default: Private Subnet 1 CIDR
+      PrivateSubnet2Cidr:
+        default: Private Subnet 2 CIDR
+      CreateVPNEndpoint:
+        default: Create VPN Endpoint
+      ClientCidrBlock:
+        default: Client CIDR for VPN Endpoint
+      ServerCertificateArn:
+        default: ACM Server Certificate ARN
+      ClientCertificateArn:
+        default: ACM Client Certificate ARN
+      TargetNetworkCidr:
+        default: Target Network CIDR for VPN Endpoint
+      Edition:
+        default: Microsoft AD Edition
+      DomainDNSName:
+        default: Domain DNS Name
+      DomainNetBIOSName:
+        default: Domain NetBIOS Name
+      DomainAdminPassword:
+        default: Domain Admin Password
+      FSxDeploymentType:
+        default: File system deployment type
+      FSxStorageCapacity:
+        default: File system storage capacity
+      FSxThroughputCapacity:
+        default: File systems throughput capacity
+      LicenseServerAmiId:
+        default: License server AMI ID
+      LicenseServerInstanceType:
+        default: License server instance type
+      DeadlineLicenseServerVersion:
+        default: Deadline License server software version
+      RenderSchedulerAmiId:
+        default: Render Scheduler AMI ID
+      RenderSchedulerInstanceType:
+        default: Render Scheduler instance type
+      DeadlineAppVersion:
+        default: Deadline application version
+      WorkstationInstanceType:
+        default: Workstation instance type
+      WorkstationConnectionManager:
+        deafult: Workstation connection manager
+      WorkstationAccessCIDR:
+        default: Workstation access CIDR
+      RenderNodeAmiId:
+        default: Render Node AMI ID
+      RenderNodeInstanceType:
+        default: Render Node instance type
+      RenderNodeTargetCapacity:
+        default: Render Node capacity
+
+Parameters:
+  AvailabilityZones:
+    Description: The list of Availability Zones to use for the subnets in the VPC. Select **two** Availability Zones from your list.
+    Type: List<AWS::EC2::AvailabilityZone::Name>
+
+  VPCCidr:
+    Description: The CIDR block for the VPC.
+    Type: String
+    Default: 10.0.0.0/16
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+
+  PublicSubnet1Cidr:
+    Description: The CIDR block for the Public Subnet located in Availability Zone 1 of the VPC.
+    Type: String
+    Default: 10.0.0.0/24
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+
+  PublicSubnet2Cidr:
+    Description: The CIDR block for the Public Subnet located in Availability Zone 2 of the VPC.
+    Type: String
+    Default: 10.0.1.0/24
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+
+  PrivateSubnet1Cidr:
+    Description: The CIDR block for the Private Subnet located in Availability Zone 1 of the VPC.
+    Type: String
+    Default: 10.0.1.0/24
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+
+  PrivateSubnet2Cidr:
+    Description: The CIDR block for the Private Subnet located in Availability Zone 2 of the VPC.
+    Type: String
+    Default: 10.0.3.0/24
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+
+  CreateVPNEndpoint:
+    Description: Should the CloudFormation create a Client VPN Endpoint. Workstation will be placed in Private subnet, if set to 'true'. (Specify 'true' or 'false')
+    Type: String
+    AllowedValues:
+      - false
+      - true
+    Default: false
+    ConstraintDescription: Must specify 'true' or 'false'
+
+  ClientCidrBlock:
+    Description: If creating Client VPN endpoint in the solution, specify the IPv4 address range. It should be in CIDR notation from which to assign client IP addresses. The address range cannot overlap with the local CIDR of the VPC in which the associated subnet.
+    Type: String
+    Default: 10.50.0.0/20
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-9]|3[0-2]))$
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-32
+
+  ServerCertificateArn:
+    Description: Required if Create Client VPN endpoint is set to `true`.
+    Type: String
+    Default: N/A
+
+  ClientCertificateArn:
+    Description: Required if Create Client VPN endpoint is set to `true`.
+    Type: String
+    Default: N/A
+
+  TargetNetworkCidr:
+    Description: If creating Client VPN endpoint in the solution, specify the IPv4 address range, in CIDR notation, of the network for which access is being authorized. For example the CIDR of the VPC.
+    Type: String
+    Default: 10.0.0.0/16
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(0[0-9]|1[0-9]|2[0-9]|3[0-2]))$
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/0-32
+
+  Edition:
+    Description: The AWS Microsoft AD edition. Valid values include Standard and Enterprise.
+    Type: String
+    AllowedValues:
+      - Standard
+      - Enterprise
+    Default: Standard
+
+  DomainDNSName:
+    Description: Fully qualified domain name (FQDN) of the forest root domain e.g. mystudio.com
+    Type: String
+    Default: mystudio.com
+    MinLength: 2
+    MaxLength: 25
+    AllowedPattern: '[a-zA-Z0-9\-]+\..+'
+
+  DomainNetBIOSName:
+    Description: NetBIOS name of the domain (upto 15 characters) for users of earlier versions of Windows e.g. mystudio
+    Type: String
+    Default: mystudio
+    MinLength: 1
+    MaxLength: 15
+    AllowedPattern: '[a-zA-Z0-9\-]+'
+
+  DomainAdminPassword:
+    Description: Password for the default administrative user named Admin. Must be between 8 and 64 characters, not contain the word "admin", and include letters, numbers and symbols.
+    Type: String
+    MinLength: 8
+    MaxLength: 64
+    AllowedPattern: (?=^.{6,255}$)((?=.*\d)(?=.*[A-Z])(?=.*[a-z])|(?=.*\d)(?=.*[^A-Za-z0-9])(?=.*[a-z])|(?=.*[^A-Za-z0-9])(?=.*[A-Z])(?=.*[a-z])|(?=.*\d)(?=.*[A-Z])(?=.*[^A-Za-z0-9]))^.*
+    NoEcho: true
+
+  FSxDeploymentType:
+    Description: Specifies the file system deployment type
+    Type: String
+    AllowedValues:
+      - MULTI_AZ_1
+      - SINGLE_AZ_2
+      - SINGLE_AZ_1
+    Default: SINGLE_AZ_2
+
+  FSxStorageCapacity:
+    Description: The storage capacity of the file system being created. Valid values are 32 GiB - 65,536 GiB (64 TiB).
+    Type: Number
+    Default: 32
+    MinValue: 32
+    MaxValue: 65536
+
+  FSxThroughputCapacity:
+    Description: The throughput capacity of an Amazon FSx file system, measured in megabytes per second in powers of 2 (8, 16, 32, ... , 1024) based on the system size.
+    Type: Number
+    AllowedValues:
+      - 8
+      - 16
+      - 32
+      - 64
+      - 128
+      - 256
+      - 512
+      - 1024
+      - 2048
+    Default: 16
+
+  LicenseServerAmiId:
+    Description: Latest Windows AMI Using Systems Manager Parameter Store.
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-windows-latest/Windows_Server-2019-English-Full-Base
+
+  LicenseServerInstanceType:
+    Description: The EC2 instance type for the Deadline License server.
+    Type: String
+    Default: m5.2xlarge
+
+  DeadlineLicenseServerVersion:
+    Description: Version of the Deadline License server software.
+    Type: String
+    AllowedValues:
+      - 1.1
+      - 11.13.1.2.1
+    Default: 1.1
+
+  RenderSchedulerAmiId:
+    Description: Latest Windows AMI Using Systems Manager Parameter Store.
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-windows-latest/Windows_Server-2019-English-Full-Base
+
+  RenderSchedulerInstanceType:
+    Description: The EC2 instance type for the Deadline License server.
+    Type: String
+    Default: m5.2xlarge
+
+  DeadlineAppVersion:
+    Description: Version of the Deadline software.
+    Type: String
+    AllowedValues:
+      - 10.1.11.5
+      - 10.0.19.0
+    Default: 10.1.11.5
+
+  WorkstationInstanceType:
+    Description: Artist workstation instance type.
+    Type: String
+    AllowedValues:
+      - g4dn.4xlarge
+      - g4dn.8xlarge
+      - g4dn.12xlarge
+      - g4dn.16xlarge
+    Default: g4dn.4xlarge
+
+  WorkstationConnectionManager:
+    Description: Specify whether you want to run Teradici PCoIP or NiceDcv server to connect to the workstation.
+    Type: String
+    AllowedValues:
+      - teradici
+      - nicedcv
+    Default: teradici
+
+  WorkstationAccessCIDR:
+    Description: CIDR block of an on-premise IP address. Input your network's IP address if the Workstation is being placed in a public subnet.
+    Type: String
+    Default: 0.0.0.0/0
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/0-32
+
+  RenderNodeAmiId:
+    Description: Latest Amazon Linux AMI Using Systems Manager Parameter Store.
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+
+  RenderNodeInstanceType:
+    Description: The EC2 instance type for the Deadline Render nodes.
+    Type: String
+    Default: m5.2xlarge
+
+  RenderNodeTargetCapacity:
+    Description: The number of instances in the spot fleet.
+    Type: String
+    Default: 2
+
+  Environment:
+    Description: The type of environment to tag your infrastructure with. You can specify DEV (development), TEST (test), or PROD (production).
+    Type: String
+    AllowedValues:
+      - DEV
+      - TEST
+      - PROD
+    Default: DEV
+
+  ResourceTags:
+    Description: Tag resources, which can help you identify and categorize them. For example project or application name e.g. MyAwesomeApp.
+    Type: String
+    Default: mystudioproject
+
+  ArtefactBucketName:
+    Description: S3 bucket name for the application assets.
+    Type: String
+    Default: aws-digital-content-creation-render-environment
+    AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-.]*[0-9a-zA-Z])*$
+    ConstraintDescription: S3 bucket name can include numbers, lowercase letters, uppercase letters, periods (.), and hyphens (-). It cannot start or end with a hyphen (-).
+
+Mappings:
+  AMIRegionMap:
+    ap-south-1:
+      NiceDcv: ami-06ed103fe0f14e426
+      Teradici: ami-08c489cfbc9e81e47
+    eu-west-3:
+      NiceDcv: ami-008ae9166dc88f821
+      Teradici: ami-01ca7247fb4f66341
+    eu-west-2:
+      NiceDcv: ami-0c8ce796f94172fec
+      Teradici: ami-00947fe4e05bb1113
+    eu-west-1:
+      NiceDcv: ami-08f3a5e58e7c43b91
+      Teradici: ami-0a9e467504b401890
+    ap-northeast-2:
+      NiceDcv: ami-02c8a5167b054e42c
+      Teradici: ami-099a8cb3827fa8ad8
+    ap-northeast-1:
+      NiceDcv: ami-06d567d20324a46e9
+      Teradici: ami-074104bce8c407fa9
+    sa-east-1:
+      NiceDcv: ami-05bdbcf858ff0ce9e
+      Teradici: ami-0cced5c8abcf42e0a
+    ap-southeast-1:
+      NiceDcv: ami-030c405f0aec88b8b
+      Teradici: ami-05714b3e69bc9e761
+    ap-southeast-2:
+      NiceDcv: ami-0d12002cbe2583501
+      Teradici: ami-0f75336b339f065a4
+    eu-central-1:
+      NiceDcv: ami-0a9cd36af1a427c07
+      Teradici: ami-0fa5140abf166471b
+    us-east-1:
+      NiceDcv: ami-0a4b8170ad36fb0b3
+      Teradici: ami-00a38f9217132f701
+    us-east-2:
+      NiceDcv: ami-08831b9280775f24a
+      Teradici: ami-09ce9ff218be9a23d
+    us-west-1:
+      NiceDcv: ami-01e2cbe111029a195
+      Teradici: ami-0bda9aeaba4bad844
+    us-west-2:
+      NiceDcv: ami-0e77f34287b171090
+      Teradici: ami-0ccbb970e1176a12c
+
+Conditions:
+  IsClientVPN: !Equals [!Ref CreateVPNEndpoint, true]
+
+  IsTeradici: !Equals [!Ref WorkstationConnectionManager, teradici]
+
+Resources:
+  IAMStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: iam.template
+      Parameters:
+        WorkstationConnectionManager: !Ref WorkstationConnectionManager
+      Tags:
+        - Key: Project
+          Value: !Ref ResourceTags
+        - Key: Environment
+          Value: !Ref Environment
+
+  VPCStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: vpc.template
+      Parameters:
+        AvailabilityZones: !Join
+          - ','
+          - !Ref AvailabilityZones
+        VPCCidr: !Ref VPCCidr
+        PublicSubnet1Cidr: !Ref PublicSubnet1Cidr
+        PublicSubnet2Cidr: !Ref PublicSubnet2Cidr
+        PrivateSubnet1Cidr: !Ref PrivateSubnet1Cidr
+        PrivateSubnet2Cidr: !Ref PrivateSubnet2Cidr
+        ResourceTags: !Ref ResourceTags
+      Tags:
+        - Key: Project
+          Value: !Ref ResourceTags
+        - Key: Environment
+          Value: !Ref Environment
+
+  SecurityGroupsHelperStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: security-groups-helper.template
+      Parameters:
+        VpcID: !GetAtt VPCStack.Outputs.VpcID
+        PublicSubnet1Cidr: !Ref PublicSubnet1Cidr
+        PublicSubnet2Cidr: !Ref PublicSubnet2Cidr
+        PrivateSubnet1Cidr: !Ref PrivateSubnet1Cidr
+        PrivateSubnet2Cidr: !Ref PrivateSubnet2Cidr
+        WorkstationAccessCIDR: !Ref WorkstationAccessCIDR
+        WorkstationConnectionManager: !Ref WorkstationConnectionManager
+        CreateVPNEndpoint: !Ref CreateVPNEndpoint
+      Tags:
+        - Key: Project
+          Value: !Ref ResourceTags
+        - Key: Environment
+          Value: !Ref Environment
+
+  ClientVPNStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: client-vpn.template
+      Parameters:
+        ClientCidrBlock: !Ref ClientCidrBlock
+        ServerCertificateArn: !Ref ServerCertificateArn
+        ClientCertificateArn: !Ref ClientCertificateArn
+        SubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1
+        TargetNetworkCidr: !Ref TargetNetworkCidr
+        VpcID: !GetAtt VPCStack.Outputs.VpcID
+        ClientVPNSecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.ClientVPNSecurityGroup
+        ResourceTags: !Ref ResourceTags
+      Tags:
+        - Key: Project
+          Value: !Ref ResourceTags
+        - Key: Environment
+          Value: !Ref Environment
+    Condition: IsClientVPN
+
+  MicrosoftADStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ad.template
+      Parameters:
+        Edition: !Ref Edition
+        DomainDNSName: !Ref DomainDNSName
+        DomainNetBIOSName: !Ref DomainNetBIOSName
+        DomainAdminPassword: !Ref DomainAdminPassword
+        VpcID: !GetAtt VPCStack.Outputs.VpcID
+        PrivateSubnet1: !GetAtt VPCStack.Outputs.PrivateSubnet1
+        PrivateSubnet2: !GetAtt VPCStack.Outputs.PrivateSubnet2
+        ResourceTags: !Ref ResourceTags
+      Tags:
+        - Key: Project
+          Value: !Ref ResourceTags
+        - Key: Environment
+          Value: !Ref Environment
+
+  FSxWindowsStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: fsx.template
+      Parameters:
+        DeploymentType: !Ref FSxDeploymentType
+        StorageCapacity: !Ref FSxStorageCapacity
+        FSxThroughputCapacity: !Ref FSxThroughputCapacity
+        VpcId: !GetAtt VPCStack.Outputs.VpcID
+        VPCCidr: !Ref VPCCidr
+        PrivateSubnet1: !GetAtt VPCStack.Outputs.PrivateSubnet1
+        PrivateSubnet2: !GetAtt VPCStack.Outputs.PrivateSubnet2
+        ActiveDirectorySecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.ActiveDirectorySecurityGroup
+        RenderSchedulerSecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.RenderSchedulerSecurityGroup
+        RenderNodeSecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.RenderNodeSecurityGroup
+        WorkstationSecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.WorkstationSecurityGroup
+        DirectoryId: !GetAtt MicrosoftADStack.Outputs.DirectoryId
+        ADServer1PrivateIP: !GetAtt MicrosoftADStack.Outputs.ADServer1PrivateIP
+        ADServer2PrivateIP: !GetAtt MicrosoftADStack.Outputs.ADServer2PrivateIP
+        DomainDNSName: !Ref DomainDNSName
+        DomainAdminPassword: !Ref DomainAdminPassword
+        ResourceTags: !Ref ResourceTags
+      Tags:
+        - Key: Project
+          Value: !Ref ResourceTags
+        - Key: Environment
+          Value: !Ref Environment
+
+  FSxCustomResourceStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: fsx-custom-resource.template
+      Parameters:
+        FSxFileSystemId: !GetAtt FSxWindowsStack.Outputs.FSxFileSystemId
+        ResourceTags: !Ref ResourceTags
+      Tags:
+        - Key: Project
+          Value: !Ref ResourceTags
+        - Key: Environment
+          Value: !Ref Environment
+
+  LicenseServerStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: license-server.template
+      Parameters:
+        PrivateSubnet1: !GetAtt VPCStack.Outputs.PrivateSubnet1
+        ActiveDirectorySecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.ActiveDirectorySecurityGroup
+        LicenseServerSecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.LicenseServerSecurityGroup
+        ActiveDirectoryDocument: !GetAtt IAMStack.Outputs.ActiveDirectoryDocument
+        DirectoryId: !GetAtt MicrosoftADStack.Outputs.DirectoryId
+        ADServer1PrivateIP: !GetAtt MicrosoftADStack.Outputs.ADServer1PrivateIP
+        ADServer2PrivateIP: !GetAtt MicrosoftADStack.Outputs.ADServer2PrivateIP
+        DomainDNSName: !Ref DomainDNSName
+        DomainUser: !GetAtt MicrosoftADStack.Outputs.DomainAdmin
+        DomainAdminPassword: !Ref DomainAdminPassword
+        FSxDNSName: !GetAtt FSxCustomResourceStack.Outputs.FSxDNSName
+        InstanceType: !Ref LicenseServerInstanceType
+        InstanceAMI: !Ref LicenseServerAmiId
+        EC2InstanceProfile: !GetAtt IAMStack.Outputs.EC2InstanceProfile
+        DeadlineLicenseServerVersion: !Ref DeadlineLicenseServerVersion
+        ResourceTags: !Ref ResourceTags
+        ArtefactBucketName: !Ref ArtefactBucketName
+      Tags:
+        - Key: Project
+          Value: !Ref ResourceTags
+        - Key: Environment
+          Value: !Ref Environment
+
+  RenderSchedulerStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: render-scheduler.template
+      Parameters:
+        PrivateSubnet1: !GetAtt VPCStack.Outputs.PrivateSubnet1
+        ActiveDirectorySecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.ActiveDirectorySecurityGroup
+        RenderSchedulerSecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.RenderSchedulerSecurityGroup
+        ActiveDirectoryDocument: !GetAtt IAMStack.Outputs.ActiveDirectoryDocument
+        DirectoryId: !GetAtt MicrosoftADStack.Outputs.DirectoryId
+        ADServer1PrivateIP: !GetAtt MicrosoftADStack.Outputs.ADServer1PrivateIP
+        ADServer2PrivateIP: !GetAtt MicrosoftADStack.Outputs.ADServer2PrivateIP
+        DomainDNSName: !Ref DomainDNSName
+        DomainUser: !GetAtt MicrosoftADStack.Outputs.DomainAdmin
+        DomainAdminPassword: !Ref DomainAdminPassword
+        FSxDNSName: !GetAtt FSxCustomResourceStack.Outputs.FSxDNSName
+        InstanceType: !Ref RenderSchedulerInstanceType
+        InstanceAMI: !Ref RenderSchedulerAmiId
+        EC2InstanceProfile: !GetAtt IAMStack.Outputs.EC2InstanceProfile
+        DeadlineAppVersion: !Ref DeadlineAppVersion
+        ResourceTags: !Ref ResourceTags
+        ArtefactBucketName: !Ref ArtefactBucketName
+      Tags:
+        - Key: Project
+          Value: !Ref ResourceTags
+        - Key: Environment
+          Value: !Ref Environment
+
+  WorkstationStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - RenderSchedulerStack
+    Properties:
+      TemplateURL: workstation.template
+      Parameters:
+        SubnetID: !If
+          - IsClientVPN
+          - !GetAtt VPCStack.Outputs.PrivateSubnet1
+          - !GetAtt VPCStack.Outputs.PublicSubnet1
+        ActiveDirectorySecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.ActiveDirectorySecurityGroup
+        WorkstationSecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.WorkstationSecurityGroup
+        ActiveDirectoryDocument: !GetAtt IAMStack.Outputs.ActiveDirectoryDocument
+        DirectoryId: !GetAtt MicrosoftADStack.Outputs.DirectoryId
+        ADServer1PrivateIP: !GetAtt MicrosoftADStack.Outputs.ADServer1PrivateIP
+        ADServer2PrivateIP: !GetAtt MicrosoftADStack.Outputs.ADServer2PrivateIP
+        DomainDNSName: !Ref DomainDNSName
+        DomainUser: !GetAtt MicrosoftADStack.Outputs.DomainAdmin
+        DomainAdminPassword: !Ref DomainAdminPassword
+        FSxDNSName: !GetAtt FSxCustomResourceStack.Outputs.FSxDNSName
+        InstanceType: !Ref WorkstationInstanceType
+        InstanceAMI: !If
+          - IsTeradici
+          - !FindInMap [AMIRegionMap, !Ref 'AWS::Region', Teradici]
+          - !FindInMap [AMIRegionMap, !Ref 'AWS::Region', NiceDcv]
+        CreateVPNEndpoint: !Ref CreateVPNEndpoint
+        EC2InstanceProfile: !GetAtt IAMStack.Outputs.WorkstationInstanceProfile
+        DeadlineAppVersion: !Ref DeadlineAppVersion
+        LicenseServerInstancePrivateIp: !GetAtt LicenseServerStack.Outputs.LicenseServerInstancePrivateIp
+        ResourceTags: !Ref ResourceTags
+        ArtefactBucketName: !Ref ArtefactBucketName
+      Tags:
+        - Key: Project
+          Value: !Ref ResourceTags
+        - Key: Environment
+          Value: !Ref Environment
+
+  RenderNodeStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - RenderSchedulerStack
+    Properties:
+      TemplateURL: render-node.template
+      Parameters:
+        PrivateSubnet1: !GetAtt VPCStack.Outputs.PrivateSubnet1
+        ActiveDirectorySecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.ActiveDirectorySecurityGroup
+        RenderNodeSecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.RenderNodeSecurityGroup
+        DomainDNSName: !Ref DomainDNSName
+        DomainAdminPassword: !Ref DomainAdminPassword
+        FSxPrivateIP: !GetAtt FSxCustomResourceStack.Outputs.FSxPrivateIP
+        InstanceType: !Ref RenderNodeInstanceType
+        InstanceAMI: !Ref RenderNodeAmiId
+        RenderNodeTargetCapacity: !Ref RenderNodeTargetCapacity
+        EC2InstanceProfile: !GetAtt IAMStack.Outputs.WorkstationInstanceProfile
+        DeadlineAppVersion: !Ref DeadlineAppVersion
+        LicenseServerInstancePrivateIp: !GetAtt LicenseServerStack.Outputs.LicenseServerInstancePrivateIp
+        SpotFleetARN: !GetAtt IAMStack.Outputs.SpotFleetARN
+        ResourceTags: !Ref ResourceTags
+        ArtefactBucketName: !Ref ArtefactBucketName
+      Tags:
+        - Key: Project
+          Value: !Ref ResourceTags
+        - Key: Environment
+          Value: !Ref Environment
+
+Outputs:
+  DomainUser:
+    Value: !GetAtt MicrosoftADStack.Outputs.DomainAdmin
+
+  FSxDNSName:
+    Value: !GetAtt FSxCustomResourceStack.Outputs.FSxDNSName
+
+  FSxPrivateIP:
+    Value: !GetAtt FSxCustomResourceStack.Outputs.FSxPrivateIP
+
+  ClientVpnEndpointID:
+    Value: !GetAtt ClientVPNStack.Outputs.ClientVpnEndpointID
+    Condition: IsClientVPN
+
+  LicenseServerIPAddress:
+    Value: !GetAtt LicenseServerStack.Outputs.LicenseServerInstancePrivateIp
+
+  RenderSchedulerIPAddress:
+    Value: !GetAtt RenderSchedulerStack.Outputs.RenderSchedulerInstancePrivateIp
+
+  WorkstationIPAddress:
+    Value: !GetAtt WorkstationStack.Outputs.WorkstationIP

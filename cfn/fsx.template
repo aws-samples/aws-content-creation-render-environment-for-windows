@@ -1,0 +1,166 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Provides FSx for Windows file system.
+
+Parameters:
+  DeploymentType:
+    Type: String
+
+  StorageCapacity:
+    Type: Number
+
+  FSxThroughputCapacity:
+    Type: Number
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+
+  VPCCidr:
+    Type: String
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet::Id
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet::Id
+
+  ActiveDirectorySecurityGroup:
+    Type: AWS::EC2::SecurityGroup::Id
+
+  RenderSchedulerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup::Id
+
+  RenderNodeSecurityGroup:
+    Type: AWS::EC2::SecurityGroup::Id
+
+  WorkstationSecurityGroup:
+    Type: AWS::EC2::SecurityGroup::Id
+
+  DirectoryId:
+    Type: String
+
+  ADServer1PrivateIP:
+    Type: String
+
+  ADServer2PrivateIP:
+    Type: String
+
+  DomainDNSName:
+    Type: String
+
+  DomainAdminPassword:
+    Type: String
+    NoEcho: true
+
+  ResourceTags:
+    Type: String
+
+Conditions:
+  IsMultiAZ: !Equals [!Ref DeploymentType, MULTI_AZ_1]
+
+Resources:
+  FSxFileSystem:
+    Type: AWS::FSx::FileSystem
+    Properties:
+      FileSystemType: WINDOWS
+      SecurityGroupIds:
+        - !Ref FsxSecurityGroup
+        - !Ref ActiveDirectorySecurityGroup
+        - !Ref RenderSchedulerSecurityGroup
+        - !Ref RenderNodeSecurityGroup
+        - !Ref WorkstationSecurityGroup
+      StorageCapacity: !Ref StorageCapacity
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !If [IsMultiAZ, !Ref PrivateSubnet2, !Ref 'AWS::NoValue']
+      Tags:
+        - Key: Name
+          Value: !Join [/, [!Ref ResourceTags, FSx]]
+      WindowsConfiguration:
+        ActiveDirectoryId: !Ref DirectoryId
+        ThroughputCapacity: !Ref FSxThroughputCapacity
+        AutomaticBackupRetentionDays: 0
+        DeploymentType: !Ref DeploymentType
+        PreferredSubnetId: !If [IsMultiAZ, !Ref PrivateSubnet1, !Ref 'AWS::NoValue']
+        SelfManagedActiveDirectoryConfiguration:
+          DnsIps:
+            - !Ref ADServer1PrivateIP
+            - !Ref ADServer2PrivateIP
+          DomainName: !Ref DomainDNSName
+          Password: !Ref DomainAdminPassword
+          UserName: Admin
+
+  FsxSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Base Security Group for SecGrp
+      VpcId: !Ref VpcId
+      Tags:
+        - Key: Name
+          Value: fsx-sg
+      SecurityGroupIngress:
+        - IpProtocol: udp
+          CidrIp: !Ref VPCCidr
+          FromPort: 53
+          ToPort: 53
+        - IpProtocol: udp
+          CidrIp: !Ref VPCCidr
+          FromPort: 88
+          ToPort: 88
+        - IpProtocol: udp
+          CidrIp: !Ref VPCCidr
+          FromPort: 123
+          ToPort: 123
+        - IpProtocol: udp
+          CidrIp: !Ref VPCCidr
+          FromPort: 389
+          ToPort: 389
+        - IpProtocol: udp
+          CidrIp: !Ref VPCCidr
+          FromPort: 464
+          ToPort: 464
+        - IpProtocol: tcp
+          CidrIp: !Ref VPCCidr
+          FromPort: 53
+          ToPort: 53
+        - IpProtocol: tcp
+          CidrIp: !Ref VPCCidr
+          FromPort: 88
+          ToPort: 88
+        - IpProtocol: tcp
+          CidrIp: !Ref VPCCidr
+          FromPort: 135
+          ToPort: 135
+        - IpProtocol: tcp
+          CidrIp: !Ref VPCCidr
+          FromPort: 389
+          ToPort: 389
+        - IpProtocol: tcp
+          CidrIp: !Ref VPCCidr
+          FromPort: 445
+          ToPort: 445
+        - IpProtocol: tcp
+          CidrIp: !Ref VPCCidr
+          FromPort: 464
+          ToPort: 464
+        - IpProtocol: tcp
+          CidrIp: !Ref VPCCidr
+          FromPort: 636
+          ToPort: 636
+        - IpProtocol: tcp
+          CidrIp: !Ref VPCCidr
+          FromPort: 3268
+          ToPort: 3269
+        - IpProtocol: tcp
+          CidrIp: !Ref VPCCidr
+          FromPort: 9389
+          ToPort: 9389
+        - IpProtocol: tcp
+          CidrIp: !Ref VPCCidr
+          FromPort: 49152
+          ToPort: 65535
+
+Outputs:
+  FSxFileSystemId:
+    Value: !Ref FSxFileSystem

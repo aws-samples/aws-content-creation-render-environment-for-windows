@@ -1,0 +1,84 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Provides managed Microsoft AD Directory Service.
+
+Parameters:
+  Edition:
+    Type: String
+
+  DomainDNSName:
+    Type: String
+
+  DomainNetBIOSName:
+    Type: String
+
+  DomainAdminPassword:
+    Type: String
+    NoEcho: true
+
+  VpcID:
+    Type: AWS::EC2::VPC::Id
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet::Id
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet::Id
+
+  ResourceTags:
+    Type: String
+
+Resources:
+  MicrosoftAD:
+    Type: AWS::DirectoryService::MicrosoftAD
+    Properties:
+      Edition: !Ref Edition
+      Name: !Ref DomainDNSName
+      Password: !Ref DomainAdminPassword
+      ShortName: !Ref DomainNetBIOSName
+      VpcSettings:
+        SubnetIds:
+          - !Ref PrivateSubnet1
+          - !Ref PrivateSubnet2
+        VpcId: !Ref VpcID
+
+  DHCPOptions:
+    Type: AWS::EC2::DHCPOptions
+    Properties:
+      DomainName: !Ref DomainDNSName
+      DomainNameServers: !GetAtt MicrosoftAD.DnsIpAddresses
+      Tags:
+        - Key: Name
+          Value: !Join [/, [!Ref ResourceTags, DHCPOptions]]
+        - Key: Domain
+          Value: !Ref DomainDNSName
+
+  VPCDHCPOptionsAssociation:
+    Type: AWS::EC2::VPCDHCPOptionsAssociation
+    Properties:
+      VpcId: !Ref VpcID
+      DhcpOptionsId: !Ref DHCPOptions
+
+Outputs:
+  ADServer1PrivateIP:
+    Description: AD Server 1 Private IP Address (this may vary based on Directory Service order of IP addresses)
+    Value: !Select
+      - 0
+      - !GetAtt MicrosoftAD.DnsIpAddresses
+
+  ADServer2PrivateIP:
+    Description: AD Server 2 Private IP Address (this may vary based on Directory Service order of IP addresses)
+    Value: !Select
+      - 1
+      - !GetAtt MicrosoftAD.DnsIpAddresses
+
+  DomainAdmin:
+    Description: Domain administrator account
+    Value: !Join
+      - ""
+      - - !Ref DomainNetBIOSName
+        - \Admin
+
+  DirectoryId:
+    Description: Microsoft Active Directory ID
+    Value: !Ref MicrosoftAD

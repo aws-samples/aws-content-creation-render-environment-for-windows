@@ -1,0 +1,43 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Get FSx for Windows DNS name and Preffered IP address.
+
+Parameters:
+  FSxFileSystemId:
+    Type: String
+
+  ResourceTags:
+    Type: String
+
+Transform: AWS::Serverless-2016-10-31
+
+Resources:
+  FSxFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: fsx.handler
+      Runtime: python3.8
+      CodeUri: ../src/fsx/
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - fsx:DescribeFileSystems
+              Resource: '*'
+      Tags:
+        Name: !Join [/, [!Ref ResourceTags, FSxDnsNameFunction]]
+
+  FSxCustom:
+    Type: Custom::FSxDnsName
+    Properties:
+      ServiceToken: !GetAtt FSxFunction.Arn
+      FSxFileSystemId: !Ref FSxFileSystemId
+    Version: "1.0"
+
+Outputs:
+  FSxDNSName:
+    Value: !GetAtt FSxCustom.FSxDNSName
+
+  FSxPrivateIP:
+    Value: !GetAtt FSxCustom.FSxPrivateIP

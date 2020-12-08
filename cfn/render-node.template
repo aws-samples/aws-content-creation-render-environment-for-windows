@@ -1,0 +1,230 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Provides configuration for a Render Node instance.
+
+Parameters:
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet::Id
+
+  ActiveDirectorySecurityGroup:
+    Type: AWS::EC2::SecurityGroup::Id
+
+  RenderNodeSecurityGroup:
+    Type: AWS::EC2::SecurityGroup::Id
+
+  DomainDNSName:
+    Type: String
+
+  DomainAdminPassword:
+    Type: String
+    NoEcho: true
+
+  FSxPrivateIP:
+    Type: String
+
+  InstanceType:
+    Type: String
+
+  InstanceAMI:
+    Type: AWS::EC2::Image::Id
+
+  RenderNodeTargetCapacity:
+    Type: String
+
+  EC2InstanceProfile:
+    Type: String
+
+  DeadlineAppVersion:
+    Type: String
+
+  LicenseServerInstancePrivateIp:
+    Type: String
+
+  SpotFleetARN:
+    Type: String
+
+  ResourceTags:
+    Type: String
+
+  ArtefactBucketName:
+    Type: String
+
+Resources:
+  RenderNodeLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Metadata:
+      AWS::CloudFormation::Init:
+        configSets:
+          config:
+            - instance_config
+            - software_install
+            - post_install
+        instance_config:
+          packages:
+            yum:
+              system-lsb: []
+              cifs-utils: []
+              sssd: []
+              realmd: []
+              krb5-workstation: []
+              samba-common-tools: []
+          files:
+            /opt/scripts/ec2-mount-ebs-volume.sh:
+              content: |
+                #!/usr/bin/env bash
+                mkdir -p /data
+                while [ ! -b $(readlink -f /dev/xvdh) ]; do echo "waiting for device /dev/xvdh"; sleep 5 ; done
+                blkid $(readlink -f /dev/xvdh) || mkfs -t ext4 $(readlink -f /dev/xvdh)
+                e2label $(readlink -f /dev/xvdh) dcc-data
+                grep -q ^LABEL=dcc-data /etc/fstab || echo 'LABEL=dcc-data /data ext4 defaults' >> /etc/fstab
+                grep -q "^$(readlink -f /dev/xvdh) /data " /proc/mounts || mount /data
+              mode: "000755"
+              owner: root
+              group: root
+            /root/.fsxcredentials:
+              content: !Sub |
+                username=Admin
+                password=${DomainAdminPassword}
+                domain=${DomainDNSName}
+              mode: "000700"
+              owner: root
+              group: root
+            /etc/cfn/cfn-hup.conf:
+              content: !Sub |
+                [main]
+                stack=${AWS::StackId}
+                region=${AWS::Region}
+                interval=1
+              mode: "000400"
+              owner: root
+              group: root
+            /etc/cfn/hooks.d/cfn-auto-reloader.conf:
+              content: !Sub |
+                [cfn-auto-reloader-hook]
+                triggers=post.update
+                path=Resources.RenderNodeLaunchTemplate.Metadata.AWS::CloudFormation::Init
+                action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource RenderNodeLaunchTemplate --configsets config --region ${AWS::Region}
+                runas=root
+              mode: "000400"
+              owner: root
+              group: root
+          commands:
+            01-mount-ebs-volume:
+              command: sh /opt/scripts/ec2-mount-ebs-volume.sh > /opt/scripts/ec2-mount-ebs-volume.log 2>&1
+              test: test -x /opt/scripts/ec2-mount-ebs-volume.sh # check if filename exists and is executable
+              ignoreErrors: false
+            02-mount-fsx:
+              command: !Sub |
+                mkdir /mnt/fsx
+                echo "//${FSxPrivateIP}/share /mnt/fsx cifs vers=3.0,sec=ntlmsspi,cred=/root/.fsxcredentials,cache=none" >> /etc/fstab
+                mount -a
+          services:
+            sysvinit:
+              cfn-hup:
+                enabled: true
+                ensureRunning: true
+                files:
+                  - /etc/cfn/cfn-hup.conf
+                  - /etc/cfn/hooks.d/cfn-auto-reloader.conf
+              amazon-ssm-agent:
+                enabled: true
+                ensureRunning: true
+        software_install:
+          sources:
+            /data/thinkbox: !Sub https://${ArtefactBucketName}.s3.${AWS::URLSuffix}/Deadline-${DeadlineAppVersion}-linux-installers.tar
+          commands:
+            10-install-client:
+              command: !Sub |
+                ls /data/thinkbox | grep DeadlineClient | \
+                  (read data; /data/thinkbox/$data \
+                  --mode unattended \
+                  --prefix "/opt/Thinkbox/Deadline10" \
+                  --connectiontype Repository \
+                  --repositorydir "/mnt/fsx/DeadlineRepository10" \
+                  --licensemode Standard \
+                  --licenseserver @${LicenseServerInstancePrivateIp} \
+                  --launcherstartup true \
+                  --slavestartup true \
+                  --daemonuser "" \
+                  --launcherdaemon true)
+              ignoreErrors: true
+        post_install:
+          packages:
+            amazon-linux-extras:
+              epel: []
+          commands:
+            20-snapd-add-repo:
+              command: yum-config-manager --add-repo https://people.canonical.com/~mvo/snapd/amazon-linux2/snapd-amzn2.repo
+            21-snapd-disable-epel:
+              command: echo "exclude=snapd-*.el7 snap-*.el7" >> /etc/yum.conf
+            22-snapd-install:
+              command: yum install -y snapd
+            23-enable-snapd-socket:
+              command: systemctl enable --now snapd.socket
+            24-snapd-wait:
+              command: snap wait system seed.loaded
+            25-install-blender:
+              command: snap install blender --classic
+    Properties:
+      LaunchTemplateData:
+        BlockDeviceMappings:
+          - DeviceName: /dev/xvdh
+            Ebs:
+              VolumeSize: 300
+              VolumeType: gp2
+              Encrypted: true
+        ImageId: !Ref InstanceAMI
+        IamInstanceProfile:
+          Name: !Ref EC2InstanceProfile
+        SecurityGroupIds:
+          - !Ref RenderNodeSecurityGroup
+          - !Ref ActiveDirectorySecurityGroup
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: Name
+                Value: !Join [/, [!Ref ResourceTags, render-node]]
+          - ResourceType: volume
+            Tags:
+              - Key: Name
+                Value: !Join [/, [!Ref ResourceTags, render-node]]
+        UserData: !Base64
+          Fn::Sub: |
+            #!/bin/bash -xe
+            yum -y update
+            # Update aws-cfn-bootstrap to the latest
+            yum install -y aws-cfn-bootstrap
+            # Call cfn-init script to install files and packages
+            /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource RenderNodeLaunchTemplate --configsets config --region ${AWS::Region}
+            # Signal the status from instance to WaitConditionHandle
+            /opt/aws/bin/cfn-signal --success true --exit-code $? --reason "Build Process Complete" '${RenderNodeWaitConditionHandle}'
+
+  RenderNodeWaitConditionHandle:
+    Type: AWS::CloudFormation::WaitConditionHandle
+
+  RenderNodeWaitCondition:
+    Type: AWS::CloudFormation::WaitCondition
+    DependsOn: RenderNodeSpotFleet
+    Properties:
+      Handle: !Ref RenderNodeWaitConditionHandle
+      Timeout: "1800"
+      Count: !Ref RenderNodeTargetCapacity
+
+  RenderNodeSpotFleet:
+    Type: AWS::EC2::SpotFleet
+    Properties:
+      SpotFleetRequestConfigData:
+        AllocationStrategy: diversified
+        IamFleetRole: !Ref SpotFleetARN
+        TargetCapacity: !Ref RenderNodeTargetCapacity
+        LaunchTemplateConfigs:
+          - LaunchTemplateSpecification:
+              LaunchTemplateId: !Ref RenderNodeLaunchTemplate
+              Version: "1"
+            Overrides:
+              - InstanceType: !Ref InstanceType
+                SubnetId: !Ref PrivateSubnet1
+
+Outputs:
+  DeadlineAppVersion:
+    Value: !Ref DeadlineAppVersion
