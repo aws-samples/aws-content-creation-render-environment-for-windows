@@ -50,7 +50,7 @@ deploy: build
 build:
 	@for fn in src/*; do \
   		printf "\n--> Installing %s requirements...\n" $${fn}; \
-  		pip install -r $${fn}/requirements.txt --target $${fn} --upgrade --use-feature=2020-resolver; \
+  		pip install -r $${fn}/requirements.txt --target $${fn} --upgrade; \
   	done
 
 # virtualenv setup
