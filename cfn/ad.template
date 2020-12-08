@@ -58,7 +58,6 @@ Resources:
     Properties:
       VpcId: !Ref VpcID
       DhcpOptionsId: !Ref DHCPOptions
-      #
 
 Outputs:
   ADServer1PrivateIP:

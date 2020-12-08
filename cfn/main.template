@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
-Description: Description of the project (uksb-1rab36c41).
+Description: AWS Content Creation Render Environment for Windows (uksb-1rab36c41).
 
 Metadata:
   Version: 0.0.1
@@ -238,7 +238,7 @@ Parameters:
       - MULTI_AZ_1
       - SINGLE_AZ_2
       - SINGLE_AZ_1
-    Default: MULTI_AZ_1
+    Default: SINGLE_AZ_2
 
   FSxStorageCapacity:
     Description: The storage capacity of the file system being created. Valid values are 32 GiB - 65,536 GiB (64 TiB).
@@ -270,7 +270,7 @@ Parameters:
   LicenseServerInstanceType:
     Description: The EC2 instance type for the Deadline License server.
     Type: String
-    Default: m5.large
+    Default: m5.2xlarge
 
   DeadlineLicenseServerVersion:
     Description: Version of the Deadline License server software.
@@ -302,13 +302,11 @@ Parameters:
     Description: Artist workstation instance type.
     Type: String
     AllowedValues:
-      - g4dn.xlarge
-      - g4dn.2xlarge
       - g4dn.4xlarge
       - g4dn.8xlarge
       - g4dn.12xlarge
       - g4dn.16xlarge
-    Default: g4dn.xlarge
+    Default: g4dn.4xlarge
 
   WorkstationConnectionManager:
     Description: Specify whether you want to run Teradici PCoIP or NiceDcv server to connect to the workstation.
@@ -332,12 +330,8 @@ Parameters:
 
   RenderNodeInstanceType:
     Description: The EC2 instance type for the Deadline Render nodes.
-    Type: CommaDelimitedList
-    AllowedValues:
-      - c5.2xlarge,c4.2xlarge
-      - c5.4xlarge,c4.4xlarge
-      - c5.9xlarge,c4.8xlarge
-    Default: c5.4xlarge,c4.4xlarge
+    Type: String
+    Default: m5.2xlarge
 
   RenderNodeTargetCapacity:
     Description: The number of instances in the spot fleet.
@@ -648,17 +642,13 @@ Resources:
     Properties:
       TemplateURL: render-node.template
       Parameters:
-        AvailabilityZones: !Join
-          - ','
-          - !Ref AvailabilityZones
         PrivateSubnet1: !GetAtt VPCStack.Outputs.PrivateSubnet1
-        PrivateSubnet2: !GetAtt VPCStack.Outputs.PrivateSubnet2
         ActiveDirectorySecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.ActiveDirectorySecurityGroup
         RenderNodeSecurityGroup: !GetAtt SecurityGroupsHelperStack.Outputs.RenderNodeSecurityGroup
         DomainDNSName: !Ref DomainDNSName
         DomainAdminPassword: !Ref DomainAdminPassword
         FSxPrivateIP: !GetAtt FSxCustomResourceStack.Outputs.FSxPrivateIP
-        InstanceTypes: !Join [',', !Ref RenderNodeInstanceType]
+        InstanceType: !Ref RenderNodeInstanceType
         InstanceAMI: !Ref RenderNodeAmiId
         RenderNodeTargetCapacity: !Ref RenderNodeTargetCapacity
         EC2InstanceProfile: !GetAtt IAMStack.Outputs.WorkstationInstanceProfile

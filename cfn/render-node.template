@@ -3,13 +3,7 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: Provides configuration for a Render Node instance.
 
 Parameters:
-  AvailabilityZones:
-    Type: List<AWS::EC2::AvailabilityZone::Name>
-
   PrivateSubnet1:
-    Type: AWS::EC2::Subnet::Id
-
-  PrivateSubnet2:
     Type: AWS::EC2::Subnet::Id
 
   ActiveDirectorySecurityGroup:
@@ -28,8 +22,8 @@ Parameters:
   FSxPrivateIP:
     Type: String
 
-  InstanceTypes:
-    Type: List<String>
+  InstanceType:
+    Type: String
 
   InstanceAMI:
     Type: AWS::EC2::Image::Id
@@ -176,7 +170,7 @@ Resources:
         BlockDeviceMappings:
           - DeviceName: /dev/xvdh
             Ebs:
-              VolumeSize: 100
+              VolumeSize: 300
               VolumeType: gp2
               Encrypted: true
         ImageId: !Ref InstanceAMI
@@ -228,12 +222,8 @@ Resources:
               LaunchTemplateId: !Ref RenderNodeLaunchTemplate
               Version: "1"
             Overrides:
-              - InstanceType: !Select [0, !Ref InstanceTypes]
-                AvailabilityZone: !Select [0, !Ref AvailabilityZones]
+              - InstanceType: !Ref InstanceType
                 SubnetId: !Ref PrivateSubnet1
-              - InstanceType: !Select [1, !Ref InstanceTypes]
-                AvailabilityZone: !Select [1, !Ref AvailabilityZones]
-                SubnetId: !Ref PrivateSubnet2
 
 Outputs:
   DeadlineAppVersion:
