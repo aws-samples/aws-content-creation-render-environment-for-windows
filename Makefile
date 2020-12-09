@@ -3,14 +3,6 @@ SHELL := /bin/bash
 .PHONY : help init deploy test clean delete
 .DEFAULT: help
 
-# Check for .custom.mk file if exists
-CUSTOM_FILE ?= .custom.mk
-ifneq ("$(wildcard $(CUSTOM_FILE))","")
-	include $(CUSTOM_FILE)
-else
-$(error File `.custom.mk` doesnt exist, please create one.)
-endif
-
 help:
 	@echo "init 		generate project for local development"
 	@echo "deploy 		deploy solution from source"
