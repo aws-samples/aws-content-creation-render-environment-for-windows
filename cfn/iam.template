@@ -13,6 +13,7 @@ Resources:
   ActiveDirectoryDocument:
     Type: AWS::SSM::Document
     Properties:
+      Name: !Sub 'ad-${AWS::StackName}'
       Content:
         schemaVersion: "1.2"
         description: Join instances to an AWS Directory Service domain.
