@@ -32,9 +32,11 @@
 #### Configure Blender Executables
 
 1. `Tools -> Configure Plugins`
+
    ![config-plugins](config-plugins.png)
 
 1. Blender is installed via Snapd package manager. The Blender executable is located in `/snap/bin/blender`. Add it to the Render Executables.
+
    ![blender-exec](blender-exec.png)
 
 Next step is to set up [Blender plug-in](../blender/blender.md).
