@@ -2,35 +2,30 @@
 
 This will involve using the workstation to set up a shot to do a test render.
 
-1. Log into your **Workstation** using **ec2-user** user account.
-1. Open the terminal and create a `test_project` folder in **projects** directory `/data/DeadlineRepository/jobs/`
+1. Log into your **Windows Workstation** using **mystudio\Admin** user account.
+1. Open the `Documents -> This PC -> Network locations -> share`
+1. Create a folder called **projects** (for example Z:\projects).
+1. Add a **test_project** in to **Z:\projects**.
 
-   ```
-   mkdir -p  /mnt/efs/test_project
-   ```
+1. Launch **Blender** by running the `blender` shortcut located in `C:\Program Files\Blender Foundation\Blender ${version}`
 
-1. Launch **Blender** by running the blender shortcut located in */usr/local/Blender*
-
-   ```
-   /usr/local/Blender/blender
-   ```
 
 1. The Deadline Blender submitter needs to be re-installed for each user, so you should do that now:
     * Go to **Edit → Preferences...**
     * Click on **Add-ons** in the left panel
     * Click **Install...**
 
-      ![install-addon.png](install-addon.png)
+      ![install-addon](install-addon.png)
 
-    * Navigate to **/data/DeadlineRepository/submission/Blender/Client/**
+    * Navigate to `Z:\DeadlineRepository10\submission\Blender\Client\`
     * Choose **DeadlineBlenderClient.py**
     * Click **Install Add-on**
 
-      ![blender-client.png](blender-client.png)
+      ![blender-client](blender-client.png)
 
-    * Click the checkbox next to **Render: Submit Blender to Deadline** add-on and close the Preferences window
+    * Click the checkbox next to **Render: Submit Blender to Deadline** add-on and close the Preferences window.
 
-      ![addon-checkbox.png](addon-checkbox.png)
+      ![addon-checkbox](addon-checkbox.png)
 
 ## Test the Blender set up
 
@@ -39,16 +34,16 @@ This will involve using the workstation to set up a shot to do a test render.
     * In the **Properties** Panel on the right, click on **Render Properties** (the icon looks like an old-time television)
     * For **Render Engine** choose **Cycles**
 
-      ![blender-scene.png](blender-scene.png)
+      ![blender-scene](blender-scene.png)
 
     * Click on **Output Properties** (the icon looks like an ink-jet printer)
     * Under **Output** change the value to **//####.png**
 
-      ![blender-output.png](blender-output.png)
+      ![blender-output](blender-output.png)
 
-    * Now save the file with `Shift Ctrl S` as `test.blend` in `/mnt/efs/test_project/`
+    * Now save the file with `Shift Ctrl S` as `test.blend` in `Z:\project\test_project\`
 
-      ![blender-file.png](blender-file.png)
+      ![blender-test](blender-test.png)
 
 1. Submit your render
     * Choose **Render → Submit to Deadline**
@@ -56,7 +51,7 @@ This will involve using the workstation to set up a shot to do a test render.
     * Set the **Frame List** to **1-10**
     * Make sure the **Blender File** and **Output File** is set properly
 
-      ![blender-job.png](blender-job.png)
+      ![blender-submit](blender-submit.png)
 
     * Click **Submit** and **Close** the window
 
@@ -68,7 +63,7 @@ This will involve using the workstation to set up a shot to do a test render.
 
 Now that our rendering farm is set up, let's render something cool. Blender provides ready to render [Demo Files](https://www.blender.org/download/demo-files/), so let's go ahead and use one.
 
-1. The sample file can be found in `/mnt/efs/assets` folder
+1. The sample file can be found in `Z:\assets\bmw272` folder
 1. In Blender, go to `File -> Open` and inside **bmw272** folder open the `bmw272.cpu.blend` file
 1. Click on **Output Properties** and change the value to `//####.png`
 1. Choose **Render -> Submit to Deadline**
@@ -76,7 +71,7 @@ Now that our rendering farm is set up, let's render something cool. Blender prov
 1. Change the **Frame List**to **1-2**
 1. Make sure the **Blender File** and **Output File** are set properly
 
-   ![bmw-job-submit.png](bmw-job-submit.png)
+   ![bmw-job-submit](bmw-submit-job.png)
 
 1. Click **Submit** and **Close** the window
 1. Go back to Deadline monitor application. You should see your render going in the **Deadline Monitor**
