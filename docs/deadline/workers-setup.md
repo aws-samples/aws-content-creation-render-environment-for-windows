@@ -11,6 +11,19 @@
 
 ![enable-super-mode.png](enable-super-mode.png)
 
+#### Set Mapped Path
+The set up is using Linux workers for rendering, hence we need to map file paths and convert them from Windows to Linux
+
+`Tools -> Configure Repository Options`
+
+1. Click on **Mapped Paths**.
+1. Under **Global Rules** click on **Add**.
+1. Replace Path: **Z:**.
+1. Windows Path: **Z:**.
+1. Linux Path: **/mnt/fsx**.
+
+   ![mapped-paths](mapped-paths.png)
+
 #### Set up the workers group
 
 `Tools -> Manage Groups`
