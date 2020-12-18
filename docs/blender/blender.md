@@ -5,10 +5,9 @@ This will involve using the workstation to set up a shot to do a test render.
 1. Log into your **Windows Workstation** using **mystudio\Admin** user account.
 1. Open the `Documents -> This PC -> Network locations -> share`
 1. Create a folder called **projects** (for example Z:\projects).
-1. Add a **test_project** in to **Z:\projects**.
+1. Add a **test_project** folder in to **Z:\projects**.
 
 1. Launch **Blender** by running the `blender` shortcut located in `C:\Program Files\Blender Foundation\Blender ${version}`
-
 
 1. The Deadline Blender submitter needs to be re-installed for each user, so you should do that now:
     * Go to **Edit → Preferences...**
@@ -31,7 +30,7 @@ This will involve using the workstation to set up a shot to do a test render.
 
 1. For your test render, you can just use the default blender file with a cube and camera (this is just a test to make sure everything is working correctly. Later on you will make a super fancy file, using Blender Demo library.)
 1. Set your output settings:
-    * In the **Properties** Panel on the right, click on **Render Properties** (the icon looks like an old-time television)
+    * In the **Properties** Panel on the right, click on **Render Properties**
     * For **Render Engine** choose **Cycles**
 
       ![blender-scene](blender-scene.png)
@@ -68,7 +67,7 @@ Now that our rendering farm is set up, let's render something cool. Blender prov
 1. Click on **Output Properties** and change the value to `//####.png`
 1. Choose **Render -> Submit to Deadline**
 1. Set the **Group** to **linux_workers**
-1. Change the **Frame List**to **1-2**
+1. Change the **Frame List** to **1-2**
 1. Make sure the **Blender File** and **Output File** are set properly
 
    ![bmw-job-submit](bmw-submit-job.png)

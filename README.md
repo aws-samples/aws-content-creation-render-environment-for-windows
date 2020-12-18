@@ -28,11 +28,11 @@ Furthermore, the solution comes with [Blender](https://www.blender.org/) install
 
 **Workstation in Public Subnet**
 
-![aws-dcc-public](docs/develop/aws-dcc-public.png)
+![aws-dcc-public](docs/develop/aws-dcc-for-windows-public.png)
 
 **Workstation in Private Subnet**
 
-![aws-dcc-private](docs/develop/aws-dcc-private.png)
+![aws-dcc-private](docs/develop/aws-dcc-for-windows-private.png)
 
 ## Getting Started
 
@@ -121,7 +121,6 @@ You are responsible for the cost of the AWS services used while running this sam
 1. When completed, click **Next**.
 1. [Configure stack options](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-add-tags.html) if desired, then click **Next**.
 1. On the **Review** screen, you must check the boxes for:
-    * "*I acknowledge that AWS CloudFormation might create IAM resources*"
     * "*I acknowledge that AWS CloudFormation might create IAM resources with custom names*"
     * "*I acknowledge that AWS CloudFormation might require the following capability: CAPABILITY_AUTO_EXPAND*"
 
@@ -139,15 +138,15 @@ To connect to workstation in Public Subnet follow the steps below:
 
 1. Note the **WorkstationIP** displayed in the **Outputs** tab of the **root** stack (it is the one without word **NESTED**).
 1. Based on Connection manager selected:
-    1. *Teradici log in*:
+    1. **Teradici log in**:
         1. Install the Teradici PCoIP client from [Teradici Software and Mobile Clients](https://docs.teradici.com/find/product/software-and-mobile-clients)
         1. In PCoIP client for **Host Address or Code**, paste the **WorkstationPublicIP**
-        1. **UserName**: centos
-        1. **Password**: provide same password as used in *EC2 user password* parameter.
-    1. *NiceDcv log in*:
+        1. **UserName**: Admin
+        1. **Password**: provide same password as used in *DomainAdminPassword* parameter.
+    1. **NiceDcv log in**:
         1. On the web browser or in the [NICE DCV Client](https://download.nice-dcv.com/), paste the **WorkstationIP** address
-        1. **UserName**: ec2-user
-        1. **Password**: provide same password as used in *EC2 user password* parameter.
+        1. **UserName**: mystudio\Admin
+        1. **Password**: provide same password as used in *DomainAdminPassword* parameter.
 
 #### Connect to Workstation deployed in Private Subnet
 To connect to workstation in Private Subnet you will need to set up VPN client.

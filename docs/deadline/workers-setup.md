@@ -1,4 +1,6 @@
-## Set up Deadline render nodes
+## Setup Deadline Monitor
+The [Deadline Monitor](https://www.awsthinkbox.com/blog/deadline-monitor-interface-customization) is your main entry point for overseeing and managing your render farm. It's a powerful application that allows you to view, configure, and interact with the many of the moving parts that make up Deadline.
+
 #### Launch the Monitor
 
 `Start -> Thinkbox -> Deadline Monitor 10`
@@ -16,11 +18,11 @@ The set up is using Linux workers for rendering, hence we need to map file paths
 
 `Tools -> Configure Repository Options`
 
-1. Click on **Mapped Paths**.
-1. Under **Global Rules** click on **Add**.
-1. Replace Path: **Z:**.
-1. Windows Path: **Z:**.
-1. Linux Path: **/mnt/fsx**.
+1. Click on **Mapped Paths**
+1. Under **Global Rules** click on **Add**
+1. Replace Path: **Z:**
+1. Windows Path: **Z:**
+1. Linux Path: **/mnt/fsx**
 
    ![mapped-paths](mapped-paths.png)
 
