@@ -126,9 +126,6 @@ Resources:
                 files:
                   - /etc/cfn/cfn-hup.conf
                   - /etc/cfn/hooks.d/cfn-auto-reloader.conf
-              amazon-ssm-agent:
-                enabled: true
-                ensureRunning: true
         software_install:
           sources:
             /data/thinkbox: !Sub https://${ArtefactBucketName}.s3.${AWS::URLSuffix}/Deadline-${DeadlineAppVersion}-linux-installers.tar
@@ -196,19 +193,6 @@ Resources:
             yum install -y aws-cfn-bootstrap
             # Call cfn-init script to install files and packages
             /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource RenderNodeLaunchTemplate --configsets config --region ${AWS::Region}
-            # Signal the status from instance to WaitConditionHandle
-            /opt/aws/bin/cfn-signal --success true --exit-code $? --reason "Build Process Complete" '${RenderNodeWaitConditionHandle}'
-
-  RenderNodeWaitConditionHandle:
-    Type: AWS::CloudFormation::WaitConditionHandle
-
-  RenderNodeWaitCondition:
-    Type: AWS::CloudFormation::WaitCondition
-    DependsOn: RenderNodeSpotFleet
-    Properties:
-      Handle: !Ref RenderNodeWaitConditionHandle
-      Timeout: "1800"
-      Count: !Ref RenderNodeTargetCapacity
 
   RenderNodeSpotFleet:
     Type: AWS::EC2::SpotFleet
