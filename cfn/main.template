@@ -3,7 +3,7 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: AWS Content Creation Render Environment for Windows (uksb-1rab36c41).
 
 Metadata:
-  Version: 0.0.5
+  Version: 0.0.6
 
   AWS::CloudFormation::Interface:
     ParameterGroups:
