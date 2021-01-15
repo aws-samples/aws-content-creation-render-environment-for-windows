@@ -135,7 +135,7 @@ Resources:
             Z:\assets: !Sub https://${ArtefactBucketName}.s3.amazonaws.com/BMW27_2.blend.zip
           files:
             C:\cfn\scripts\workstation-packages.ps1:
-              source: !Sub https://${ArtefactBucketName}.s3.${AWS::URLSuffix}/scripts/workstation-packages.ps1
+              source: https://raw.githubusercontent.com/aws-samples/aws-content-creation-render-environment-for-windows/main/scripts/workstation-packages.ps1
           commands:
             01-install-packages:
               command: powershell.exe -ExecutionPolicy Unrestricted .\workstation-packages.ps1

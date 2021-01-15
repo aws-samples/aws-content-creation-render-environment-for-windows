@@ -128,7 +128,7 @@ Resources:
         post_install:
           files:
             C:\cfn\scripts\install-packages.ps1:
-              source: !Sub https://${ArtefactBucketName}.s3.${AWS::URLSuffix}/scripts/install-packages.ps1
+              source: https://raw.githubusercontent.com/aws-samples/aws-content-creation-render-environment-for-windows/main/scripts/install-packages.ps1
           commands:
             01-install-packages:
               command: powershell.exe -ExecutionPolicy Unrestricted .\install-packages.ps1
