@@ -41,6 +41,6 @@ jobs:
       - name: Build Release
         run: make cfn-publish-package
       - name: Upload artefact
-        run: aws s3 cp packaged.zip s3://$CFN_BUCKET/aws-dcc-for-windows/$VERSION/aws-dcc-for-windows.zip
+        run: aws s3 cp packaged.zip s3://$CFN_BUCKET/aws-content-creation-render-environment-for-windows/$VERSION/aws-content-creation-render-environment-for-windows.zip
         env:
           CFN_BUCKET: ${{ secrets.CFN_BUCKET }}
