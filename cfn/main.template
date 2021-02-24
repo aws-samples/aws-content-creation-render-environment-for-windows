@@ -363,46 +363,46 @@ Mappings:
   AMIRegionMap:
     ap-south-1:
       NiceDcv: ami-06ed103fe0f14e426
-      Teradici: ami-08c489cfbc9e81e47
+      Teradici: ami-0702d91f70d599eed
     eu-west-3:
       NiceDcv: ami-008ae9166dc88f821
-      Teradici: ami-01ca7247fb4f66341
+      Teradici: ami-0cca22c15cd254f37
     eu-west-2:
       NiceDcv: ami-0c8ce796f94172fec
-      Teradici: ami-00947fe4e05bb1113
+      Teradici: ami-08f26e8c09e56cd6e
     eu-west-1:
       NiceDcv: ami-08f3a5e58e7c43b91
-      Teradici: ami-0a9e467504b401890
+      Teradici: ami-06f1c5023ce0f9d81
     ap-northeast-2:
       NiceDcv: ami-02c8a5167b054e42c
-      Teradici: ami-099a8cb3827fa8ad8
+      Teradici: ami-07b7cbeb34f3aec62
     ap-northeast-1:
       NiceDcv: ami-06d567d20324a46e9
-      Teradici: ami-074104bce8c407fa9
+      Teradici: ami-03ecf29831389b4b9
     sa-east-1:
       NiceDcv: ami-05bdbcf858ff0ce9e
-      Teradici: ami-0cced5c8abcf42e0a
+      Teradici: ami-07819057af66de0b6
     ap-southeast-1:
       NiceDcv: ami-030c405f0aec88b8b
-      Teradici: ami-05714b3e69bc9e761
+      Teradici: ami-0c31c675576e68ef7
     ap-southeast-2:
       NiceDcv: ami-0d12002cbe2583501
-      Teradici: ami-0f75336b339f065a4
+      Teradici: ami-0d08f56894d871c29
     eu-central-1:
       NiceDcv: ami-0a9cd36af1a427c07
-      Teradici: ami-0fa5140abf166471b
+      Teradici: ami-04ebd347ba3b42e14
     us-east-1:
       NiceDcv: ami-0a4b8170ad36fb0b3
-      Teradici: ami-00a38f9217132f701
+      Teradici: ami-0299806a7a0db74d5
     us-east-2:
       NiceDcv: ami-08831b9280775f24a
-      Teradici: ami-09ce9ff218be9a23d
+      Teradici: ami-0f095edee697b1ef3
     us-west-1:
       NiceDcv: ami-01e2cbe111029a195
-      Teradici: ami-0bda9aeaba4bad844
+      Teradici: ami-08281d8103b7f233f
     us-west-2:
       NiceDcv: ami-0e77f34287b171090
-      Teradici: ami-0ccbb970e1176a12c
+      Teradici: ami-0f7adbd07e91f6e83
 
 Conditions:
   IsClientVPN: !Equals [!Ref CreateVPNEndpoint, true]
