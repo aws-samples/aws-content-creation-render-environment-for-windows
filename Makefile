@@ -70,8 +70,8 @@ test:
 	pre-commit run --all-files
 
 .PHONY: version
-version: $(VENV_NAME)
-	@$(VENV_NAME)/bin/bumpversion $(part)
+version:
+	@venv/bin/bumpversion $(part)
 
 # Cleanup local build
 clean:
