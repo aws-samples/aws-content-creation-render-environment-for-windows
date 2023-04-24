@@ -1,5 +1,3 @@
-SHELL := /bin/bash
-
 .PHONY : help init deploy test clean delete
 .DEFAULT: help
 
@@ -24,7 +22,6 @@ help:
 # Install local dependencies and git hooks
 init: venv
 	venv/bin/pre-commit install
-	make build
 
 deploy: package
 	@printf "\n--> Deploying %s template...\n" $(STACK_NAME)
