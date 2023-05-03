@@ -3,3 +3,4 @@ boto3
 bump2version
 cfn_lint
 pre-commit
+aws-sam-cli

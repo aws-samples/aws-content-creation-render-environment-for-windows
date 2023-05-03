@@ -25,7 +25,7 @@ init: venv
 
 deploy: package
 	@printf "\n--> Deploying %s template...\n" $(STACK_NAME)
-	@aws cloudformation deploy \
+	@sam deploy \
 	  --template-file ./cfn/packaged.template \
 	  --stack-name $(STACK_NAME) \
 	  --region $(AWS_REGION) \
@@ -41,7 +41,7 @@ deploy: package
 
 package: build
 	@printf "\n--> Packaging and uploading templates to the %s S3 bucket ...\n" $(BUCKET_NAME)
-	@aws cloudformation package \
+	@sam package \
   	--template-file ./cfn/main.template \
   	--s3-bucket $(BUCKET_NAME) \
   	--s3-prefix $(STACK_NAME) \
@@ -49,10 +49,8 @@ package: build
   	--region $(AWS_REGION)
 
 build:
-	@for fn in src/*; do \
-  		printf "\n--> Installing %s requirements...\n" $${fn}; \
-  		pip install -r $${fn}/requirements.txt --target $${fn} --upgrade; \
-  	done
+	@printf "\n--> Building lambda_layers dependencies...\n"
+	@pip install -r src/lambda_layers/requirements.txt --target src/lambda_layers/python --upgrade
 
 # Package for cfn-publish CI
 cfn-publish-package: build
@@ -80,6 +78,7 @@ clean:
 
 delete:
 	@printf "\n--> Deleting %s stack...\n" $(STACK_NAME)
-	@aws cloudformation delete-stack \
-            --stack-name $(STACK_NAME)
-	@printf "\n--> $(STACK_NAME) deletion has been submitted, check AWS CloudFormation Console for an update..."
+	@sam delete \
+	--stack-name $(STACK_NAME) \
+	--region $(AWS_REGION) \
+	--no-prompts
