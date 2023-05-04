@@ -515,6 +515,7 @@ Resources:
     Properties:
       TemplateURL: fsx-custom-resource.template
       Parameters:
+        PythonLayerArn: !GetAtt LayerVersionStack.Outputs.PythonLayerArn
         FSxFileSystemId: !GetAtt FSxWindowsStack.Outputs.FSxFileSystemId
         ResourceTags: !Ref ResourceTags
       Tags:

@@ -68,10 +68,10 @@ test:
 	venv/bin/pre-commit run --all-files
 
 cfn-lint:
-	cfn-lint
+	@cfn-lint
 
 cfn-nag:
-	cfn_nag_scan --input-path ./cfn --template-pattern './.*\.template' --deny-list-path ./cfn_nag_denylist.yaml
+	@cfn_nag_scan --input-path ./cfn --template-pattern './.*\.template' --deny-list-path ./cfn_nag_denylist.yaml
 
 .PHONY: version
 version:
