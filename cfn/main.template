@@ -116,7 +116,7 @@ Metadata:
       WorkstationInstanceType:
         default: Workstation instance type
       WorkstationConnectionManager:
-        deafult: Workstation connection manager
+        default: Workstation connection manager
       WorkstationAccessCIDR:
         default: Workstation access CIDR
       RenderNodeAmiId:
@@ -309,7 +309,7 @@ Parameters:
     Default: g4dn.4xlarge
 
   WorkstationConnectionManager:
-    Description: Specify whether you want to run Teradici PCoIP or NiceDcv server to connect to the workstation.
+    Description: Specify whether you want to run HP Anyware (formerly Teradici CAS) or NiceDcv server to connect to the workstation.
     Type: String
     AllowedValues:
       - teradici
@@ -359,57 +359,39 @@ Parameters:
     AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-.]*[0-9a-zA-Z])*$
     ConstraintDescription: S3 bucket name can include numbers, lowercase letters, uppercase letters, periods (.), and hyphens (-). It cannot start or end with a hyphen (-).
 
-Mappings:
-  AMIRegionMap:
-    ap-south-1:
-      NiceDcv: ami-06ed103fe0f14e426
-      Teradici: ami-084993fcf0fbaa8d6
-    eu-west-3:
-      NiceDcv: ami-008ae9166dc88f821
-      Teradici: ami-0016cbc135e4a6f21
-    eu-west-2:
-      NiceDcv: ami-0c8ce796f94172fec
-      Teradici: ami-066c4a65053e91a0e
-    eu-west-1:
-      NiceDcv: ami-08f3a5e58e7c43b91
-      Teradici: ami-0abf57be596883d8e
-    ap-northeast-2:
-      NiceDcv: ami-02c8a5167b054e42c
-      Teradici: ami-049d95798367f5da5
-    ap-northeast-1:
-      NiceDcv: ami-06d567d20324a46e9
-      Teradici: ami-05328e4c2daf30e80
-    sa-east-1:
-      NiceDcv: ami-05bdbcf858ff0ce9e
-      Teradici: ami-0b9ae676919f905f7
-    ap-southeast-1:
-      NiceDcv: ami-030c405f0aec88b8b
-      Teradici: ami-0e4b0c540569916cf
-    ap-southeast-2:
-      NiceDcv: ami-0d12002cbe2583501
-      Teradici: ami-0771c57b0c075203e
-    eu-central-1:
-      NiceDcv: ami-0a9cd36af1a427c07
-      Teradici: ami-00e4ba05532b498a6
-    us-east-1:
-      NiceDcv: ami-0a4b8170ad36fb0b3
-      Teradici: ami-08e6992404c8866e2
-    us-east-2:
-      NiceDcv: ami-08831b9280775f24a
-      Teradici: ami-0544315d333443815
-    us-west-1:
-      NiceDcv: ami-01e2cbe111029a195
-      Teradici: ami-085af94cbfb084ee0
-    us-west-2:
-      NiceDcv: ami-0e77f34287b171090
-      Teradici: ami-0c68d2fde6202937d
-
 Conditions:
   IsClientVPN: !Equals [!Ref CreateVPNEndpoint, true]
 
   IsTeradici: !Equals [!Ref WorkstationConnectionManager, teradici]
 
 Resources:
+  LayerVersionStack:
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: layers.template
+      Tags:
+        - Key: Project
+          Value: !Ref ResourceTags
+        - Key: Environment
+          Value: !Ref Environment
+
+  WorkstationLatestAmiStack:
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ami.template
+      Parameters:
+        PythonLayerArn: !GetAtt LayerVersionStack.Outputs.PythonLayerArn
+        WorkstationConnectionManager: !Ref WorkstationConnectionManager
+      Tags:
+        - Key: Project
+          Value: !Ref ResourceTags
+        - Key: Environment
+          Value: !Ref Environment
+
   IAMStack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -621,8 +603,8 @@ Resources:
         InstanceType: !Ref WorkstationInstanceType
         InstanceAMI: !If
           - IsTeradici
-          - !FindInMap [AMIRegionMap, !Ref 'AWS::Region', Teradici]
-          - !FindInMap [AMIRegionMap, !Ref 'AWS::Region', NiceDcv]
+          - !GetAtt WorkstationLatestAmiStack.Outputs.HpAnywareForWindowsServerAmi
+          - !GetAtt WorkstationLatestAmiStack.Outputs.NiceDcvForWindowsServerAmi
         CreateVPNEndpoint: !Ref CreateVPNEndpoint
         EC2InstanceProfile: !GetAtt IAMStack.Outputs.WorkstationInstanceProfile
         DeadlineAppVersion: !Ref DeadlineAppVersion

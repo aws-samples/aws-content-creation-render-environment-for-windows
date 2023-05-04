@@ -2,9 +2,8 @@
 ### Local development
 .custom.mk
 certs
-/.aws-sam/
 /cfn/packaged.template
-/src/lambda_layers/python/
+/src/layers/PythonLayer/python/
 
 ### VirtualEnv template
 # Virtualenv

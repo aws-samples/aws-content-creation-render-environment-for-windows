@@ -50,7 +50,7 @@ package: build
 
 build:
 	@printf "\n--> Building lambda_layers dependencies...\n"
-	@pip install -r src/lambda_layers/requirements.txt --target src/lambda_layers/python --upgrade
+	@pip install -r src/layers/PythonLayer/requirements.txt --target src/layers/PythonLayer/python --upgrade
 
 # Package for cfn-publish CI
 cfn-publish-package: build

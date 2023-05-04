@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
-Description: Get FSx for Windows DNS name and Preffered IP address.
+Description: Custom Resource to get FSx for Windows DNS name and Preferred IP address.
 
 Parameters:
   FSxFileSystemId:
