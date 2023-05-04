@@ -14,11 +14,6 @@ repos:
         args:
           - --fix=lf
       - id: check-yaml
-      - id: pretty-format-json
-        args:
-          - --autofix
-          - --indent=2
-          - --no-sort-keys
         exclude: /package-lock\.json$
       - id: check-added-large-files
         args:
