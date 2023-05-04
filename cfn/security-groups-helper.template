@@ -92,6 +92,10 @@ Resources:
           FromPort: 3389
           ToPort: 3389
           CidrIp: !Ref PublicSubnet2Cidr
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
       Tags:
         - Key: Name
           Value: microsoft-ad-sg
@@ -103,6 +107,10 @@ Resources:
     Properties:
       GroupDescription: Security group for Client VPN Endpoint
       VpcId: !Ref VpcID
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
       Tags:
         - Key: Name
           Value: client-vpn-sg
@@ -123,6 +131,10 @@ Resources:
     Properties:
       GroupDescription: Security group for License Server instance
       VpcId: !Ref VpcID
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
       Tags:
         - Key: Name
           Value: license-server-sg
@@ -169,6 +181,10 @@ Resources:
     Properties:
       GroupDescription: Security group for Render Scheduler instance
       VpcId: !Ref VpcID
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
       Tags:
         - Key: Name
           Value: render-scheduler-sg
@@ -266,6 +282,10 @@ Resources:
               FromPort: 3389
               ToPort: 3389
               CidrIp: !Ref WorkstationAccessCIDR
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
       Tags:
         - Key: Name
           Value: workstation-sg
@@ -293,6 +313,10 @@ Resources:
     Properties:
       GroupDescription: Security group for Render Node instances
       VpcId: !Ref VpcID
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
       Tags:
         - Key: Name
           Value: render-node-sg

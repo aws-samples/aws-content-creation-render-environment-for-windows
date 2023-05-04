@@ -1,0 +1,7 @@
+templates:
+  - ./cfn/*.template
+ignore_checks:
+  # Supress "This code may only work with `package` cli command as the property <xyz> is a string".
+  - W3002
+  # Supress "NoEcho parameter <xyz>, CloudFormation will display the parameter value in plaintext"
+  - W4002

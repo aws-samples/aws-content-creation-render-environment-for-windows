@@ -1,0 +1,5 @@
+RulesToSuppress:
+- id: W89
+  reason: We do not require Lambda to access resources in a VPC.
+- id: W92
+  reason: We do not need to limit concurrent executions of Lambda function.

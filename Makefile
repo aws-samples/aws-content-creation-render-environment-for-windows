@@ -65,7 +65,13 @@ venv/bin/activate: requirements.txt
 	touch venv/bin/activate
 
 test:
-	pre-commit run --all-files
+	venv/bin/pre-commit run --all-files
+
+cfn-lint:
+	venv/bin/cfn-lint
+
+cfn-nag:
+	cfn_nag_scan --input-path ./cfn --template-pattern './.*\.template' --deny-list-path ./cfn_nag_denylist.yaml
 
 .PHONY: version
 version:

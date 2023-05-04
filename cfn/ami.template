@@ -19,6 +19,11 @@ Transform: AWS::Serverless-2016-10-31
 Resources:
   AmiIdFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W11
+            reason: ec2:DescribeImages supports all resources.
     Properties:
       Description: Get the latest Workstation AMI.
       Handler: index.handler
