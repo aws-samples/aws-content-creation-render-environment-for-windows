@@ -75,7 +75,7 @@ cfn-nag:
 
 .PHONY: version
 version:
-	@venv/bin/bumpversion $(part)
+	@bumpversion --dry-run --list cfn/main.template | grep current_version | sed s/'^.*='//
 
 # Cleanup local build
 clean:
