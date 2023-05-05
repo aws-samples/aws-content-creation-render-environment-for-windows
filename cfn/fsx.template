@@ -160,6 +160,10 @@ Resources:
           CidrIp: !Ref VPCCidr
           FromPort: 49152
           ToPort: 65535
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
 
 Outputs:
   FSxFileSystemId:

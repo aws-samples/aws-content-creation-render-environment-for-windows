@@ -1,5 +1,3 @@
-SHELL := /bin/bash
-
 .PHONY : help init deploy test clean delete
 .DEFAULT: help
 
@@ -24,11 +22,10 @@ help:
 # Install local dependencies and git hooks
 init: venv
 	venv/bin/pre-commit install
-	make build
 
 deploy: package
 	@printf "\n--> Deploying %s template...\n" $(STACK_NAME)
-	@aws cloudformation deploy \
+	@sam deploy \
 	  --template-file ./cfn/packaged.template \
 	  --stack-name $(STACK_NAME) \
 	  --region $(AWS_REGION) \
@@ -44,7 +41,7 @@ deploy: package
 
 package: build
 	@printf "\n--> Packaging and uploading templates to the %s S3 bucket ...\n" $(BUCKET_NAME)
-	@aws cloudformation package \
+	@sam package \
   	--template-file ./cfn/main.template \
   	--s3-bucket $(BUCKET_NAME) \
   	--s3-prefix $(STACK_NAME) \
@@ -52,10 +49,8 @@ package: build
   	--region $(AWS_REGION)
 
 build:
-	@for fn in src/*; do \
-  		printf "\n--> Installing %s requirements...\n" $${fn}; \
-  		pip install -r $${fn}/requirements.txt --target $${fn} --upgrade; \
-  	done
+	@printf "\n--> Building lambda_layers dependencies...\n"
+	@pip install -r src/layers/PythonLayer/requirements.txt --target src/layers/PythonLayer/python --upgrade
 
 # Package for cfn-publish CI
 cfn-publish-package: build
@@ -70,10 +65,17 @@ venv/bin/activate: requirements.txt
 	touch venv/bin/activate
 
 test:
-	pre-commit run --all-files
+	venv/bin/pre-commit run --all-files
 
+cfn-lint:
+	@cfn-lint
+
+cfn-nag:
+	@cfn_nag_scan --input-path ./cfn --template-pattern './.*\.template' --deny-list-path ./cfn_nag_denylist.yaml
+
+.PHONY: version
 version:
-	@bumpversion --dry-run --list cfn/main.template | grep current_version | sed s/'^.*='//
+	@venv/bin/bumpversion $(part)
 
 # Cleanup local build
 clean:
@@ -82,6 +84,7 @@ clean:
 
 delete:
 	@printf "\n--> Deleting %s stack...\n" $(STACK_NAME)
-	@aws cloudformation delete-stack \
-            --stack-name $(STACK_NAME)
-	@printf "\n--> $(STACK_NAME) deletion has been submitted, check AWS CloudFormation Console for an update..."
+	@sam delete \
+	--stack-name $(STACK_NAME) \
+	--region $(AWS_REGION) \
+	--no-prompts

@@ -1,0 +1,22 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Lambda layers.
+
+Transform: AWS::Serverless-2016-10-31
+
+Resources:
+  PythonLayer:
+    Type: AWS::Serverless::LayerVersion
+    Metadata:
+      BuildMethod: python3.10
+      RetentionPolicy: Delete
+    Properties:
+      LayerName: !Sub ${AWS::StackName}
+      Description: Dependencies for the Python functions.
+      ContentUri: ../src/layers/PythonLayer/.
+      CompatibleRuntimes:
+        - python3.10
+
+Outputs:
+  PythonLayerArn:
+    Value: !Ref PythonLayer

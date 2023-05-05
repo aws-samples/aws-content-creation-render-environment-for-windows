@@ -1,11 +1,9 @@
 # Created by .ignore support plugin (hsz.mobi)
 ### Local development
 .custom.mk
-cfn/packaged.template
-src
-!src/fsx/fsx.py
-!src/fsx/requirements.txt
 certs
+/cfn/packaged.template
+/src/layers/PythonLayer/python/
 
 ### VirtualEnv template
 # Virtualenv

@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Custom Resource to get the latest Workstation AMI.
+
+Parameters:
+  PythonLayerArn:
+    Type: String
+
+  WorkstationConnectionManager:
+    Type: String
+
+Conditions:
+  IsTeradici: !Equals [!Ref WorkstationConnectionManager, teradici]
+
+  IsNiceDcv: !Equals [!Ref WorkstationConnectionManager, nicedcv]
+
+Transform: AWS::Serverless-2016-10-31
+
+Resources:
+  AmiIdFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W11
+            reason: ec2:DescribeImages supports all resources.
+    Properties:
+      Description: Get the latest Workstation AMI.
+      Handler: index.handler
+      Runtime: python3.10
+      CodeUri: ../src/ami_id
+      Layers:
+        - !Ref PythonLayerArn
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - ec2:DescribeImages
+              Resource:
+                - '*'
+      Timeout: 60
+
+  HpAnywareForWindowsServer:
+    Type: Custom::HpAnywareForWindowsServer
+    Properties:
+      ServiceToken: !GetAtt AmiIdFunction.Arn
+      Version: 2
+      OWNER_ID: 679593333241
+      FILTERS: '[{"Name": "product-code", "Values": ["4af6zv023dsu3c28day09b2a9"]}, {"Name": "state", "Values": ["available"]}]'
+    Condition: IsTeradici
+
+  NiceDcvForWindowsServer:
+    Type: Custom::NiceDcvForWindowsServer
+    Properties:
+      ServiceToken: !GetAtt AmiIdFunction.Arn
+      Version: 1
+      OWNER_ID: 877902723034
+      FILTERS: '[{"Name": "name", "Values": ["DCV-Windows-*"]}, {"Name": "state", "Values": ["available"]}]'
+    Condition: IsNiceDcv
+
+Outputs:
+  HpAnywareForWindowsServerAmi:
+    Description: HP Anyware AMI ID
+    Value: !Ref HpAnywareForWindowsServer
+    Condition: IsTeradici
+
+  NiceDcvForWindowsServerAmi:
+    Description: NiceDcv AMI ID
+    Value: !Ref NiceDcvForWindowsServer
+    Condition: IsNiceDcv

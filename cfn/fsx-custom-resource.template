@@ -1,8 +1,11 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
-Description: Get FSx for Windows DNS name and Preffered IP address.
+Description: Custom Resource to get FSx for Windows DNS name and Preferred IP address.
 
 Parameters:
+  PythonLayerArn:
+    Type: String
+
   FSxFileSystemId:
     Type: String
 
@@ -14,10 +17,17 @@ Transform: AWS::Serverless-2016-10-31
 Resources:
   FSxFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W11
+            reason: fsx:DescribeFileSystems supports all resources.
     Properties:
       Handler: fsx.handler
       Runtime: python3.8
       CodeUri: ../src/fsx/
+      Layers:
+        - !Ref PythonLayerArn
       Policies:
         - Version: "2012-10-17"
           Statement:

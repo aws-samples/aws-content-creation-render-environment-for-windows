@@ -4,7 +4,7 @@
 repos:
   # General
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.0.1
+    rev: v4.4.0
     hooks:
       - id: check-case-conflict
       - id: detect-private-key
@@ -14,11 +14,6 @@ repos:
         args:
           - --fix=lf
       - id: check-yaml
-      - id: pretty-format-json
-        args:
-          - --autofix
-          - --indent=2
-          - --no-sort-keys
         exclude: /package-lock\.json$
       - id: check-added-large-files
         args:
@@ -35,14 +30,12 @@ repos:
 
   # CloudFormation
   - repo: https://github.com/aws-cloudformation/cfn-python-lint
-    rev: v0.53.1
+    rev: v0.77.4
     hooks:
       - id: cfn-python-lint
         name: AWS CloudFormation Linter
         files: \.(template)$
-        args: [--ignore-checks=E3002, --ignore-checks=W4002]
 
-  # The bug creates circular checks with end-of-file-fixer.
   - repo: https://github.com/aws-cloudformation/rain
     rev: v1.2.0
     hooks:
@@ -51,18 +44,20 @@ repos:
 
   # Python
   - repo: https://github.com/pycqa/pylint
-    rev: v2.10.2
+    rev: v3.0.0a6
     hooks:
       - id: pylint
         args:
           - --errors-only
-
-  - repo: https://github.com/PyCQA/isort
-    rev: 5.9.3
-    hooks:
-      - id: isort
+          - --disable=E0401
 
   - repo: https://github.com/psf/black
-    rev: 21.8b0
+    rev: 23.3.0
     hooks:
       - id: black
+
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        args: ["--profile", "black"]
